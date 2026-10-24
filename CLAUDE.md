@@ -41,6 +41,4 @@ WXT で作るブラウザー拡張のひな形。拡張のページ（ポップ�
 - React に依存しないもの（背景・内容スクリプト・`src/base`・`src/util` の多く）では React を読み込まない。
 - 画面の操作で失敗したら、画面にも知らせる（`console.error` だけにしない）。
 - 見張り（`watch`）は、最初の値を読む前に始める。読む間の変化を取りこぼさないため。
-- 見た目は、部品の JSX に Tailwind のクラスで書く。画面ごとの CSS ファイルは作らない。色は `text-ink`・`bg-paper`・`text-accent`・`text-danger` などの、この拡張の色を使う（Tailwind の既定の色は直に使わない）。暗い表示は色の変数で差し替わるので、`dark:` は書かなくてよい。
-- 両方の画面で同じ見た目の部品（ボタンなど）は、`src/base/` に React の部品として置く。
-- 内容スクリプトでは Tailwind（`app.css`）を読み込まない。土台の CSS が、ほかのサイトのページの見た目を崩すため。
+- 見た目（Tailwind）と JSX の形の決まりは、`docs/coding-style.md` の「JSX の形」「見た目（Tailwind CSS）」にある。
