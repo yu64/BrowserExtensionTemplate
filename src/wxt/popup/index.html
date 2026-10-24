@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-i18n-lang="htmlLang">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      WXT は title を manifest の default_title（ツールバーのボタンの名前）に写す。
+      __MSG_ の形はマニフェストでだけ訳されるので、画面の title は data-i18n で入れ直す。
+    -->
+    <title data-i18n="extName">__MSG_extName__</title>
+    <link rel="stylesheet" href="../../style/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <h1 data-i18n="extName"></h1>
+
+      <section class="counter">
+        <span data-i18n="popupCounterLabel"></span>
+        <output id="counter"></output>
+        <button id="increment" type="button" data-i18n="popupIncrement"></button>
+      </section>
+
+      <section class="links">
+        <button id="count-links" type="button" data-i18n="popupCountLinks"></button>
+        <p id="link-count" aria-live="polite"></p>
+      </section>
+
+      <p id="error" class="error" role="alert"></p>
+
+      <footer>
+        <button id="open-options" type="button" class="link" data-i18n="popupOpenOptions"></button>
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

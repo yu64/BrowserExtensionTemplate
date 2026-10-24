@@ -1,0 +1,56 @@
+{
+  "extName": {
+    "message": "Extension Template",
+    "description": "The extension name shown in the store and the extension list."
+  },
+  "extDescription": {
+    "message": "A browser extension template built with WXT.",
+    "description": "The extension description shown in the store and the extension list."
+  },
+  "htmlLang": {
+    "message": "en",
+    "description": "The BCP 47 name of this language, used for the HTML lang attribute."
+  },
+  "popupCounterLabel": {
+    "message": "Clicks"
+  },
+  "popupIncrement": {
+    "message": "Add one"
+  },
+  "popupIncrementFailed": {
+    "message": "Couldn't add one. Please try again."
+  },
+  "popupCountLinks": {
+    "message": "Count links on this page"
+  },
+  "popupLinkCount": {
+    "message": "This page has $COUNT$ links.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "popupCountLinksFailed": {
+    "message": "Links can't be counted on this page. Reload the page and try again."
+  },
+  "popupOpenOptions": {
+    "message": "Open settings"
+  },
+  "optionsTitle": {
+    "message": "Settings"
+  },
+  "optionsLinksHighlighted": {
+    "message": "Outline links on pages"
+  },
+  "optionsHighlightColor": {
+    "message": "Outline color"
+  },
+  "optionsSaved": {
+    "message": "Saved."
+  },
+  "optionsSaveFailed": {
+    "message": "Couldn't save. Please try again."
+  }
+}

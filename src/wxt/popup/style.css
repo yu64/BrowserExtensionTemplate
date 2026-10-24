@@ -1,0 +1,35 @@
+/* ポップアップは幅が決まっていないので、ここで決める。 */
+.popup {
+  display: grid;
+  gap: 16px;
+  width: 280px;
+  padding: 16px;
+}
+
+.counter {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.counter output {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter button {
+  grid-column: 1 / -1;
+}
+
+.links {
+  display: grid;
+  gap: 8px;
+}
+
+/* 結果や失敗の知らせがまだないときに、余白だけが残らないようにする。 */
+.links p:empty,
+.popup > p:empty {
+  display: none;
+}

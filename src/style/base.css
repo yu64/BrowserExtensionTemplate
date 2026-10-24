@@ -1,0 +1,84 @@
+/*
+ * 拡張のページ（ポップアップ・設定画面）で共通の見た目。
+ * 色は変数にまとめ、ブラウザーが暗い表示のときは差し替える。
+ */
+:root {
+  color-scheme: light dark;
+  --color-text: #1f2328;
+  --color-muted: #59636e;
+  --color-background: #ffffff;
+  --color-surface: #f6f8fa;
+  --color-border: #d1d9e0;
+  --color-accent: #0969da;
+  --color-accent-text: #ffffff;
+  --color-danger: #d1242f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text: #f0f6fc;
+    --color-muted: #9198a1;
+    --color-background: #0d1117;
+    --color-surface: #151b23;
+    --color-border: #3d444d;
+    --color-accent: #4493f8;
+    --color-accent-text: #0d1117;
+    --color-danger: #f85149;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  padding: 6px 12px;
+  font: inherit;
+  color: var(--color-accent-text);
+  background: var(--color-accent);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.1);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* 見た目をリンクに寄せたボタン。画面を移る操作に使う。 */
+button.link {
+  padding: 0;
+  color: var(--color-accent);
+  background: none;
+  text-decoration: underline;
+}
+
+.error {
+  color: var(--color-danger);
+}

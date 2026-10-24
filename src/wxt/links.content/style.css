@@ -1,0 +1,9 @@
+/*
+ * 設定で「リンクを枠で囲む」を選んだときだけ効く。
+ * 属性と変数の名前、リンクの選び方（a[href]）は、index.ts とそろえる。
+ * ページの CSS に負けないように !important を付ける。
+ */
+html[data-extension-template-highlight] a[href] {
+  outline: 2px solid var(--extension-template-highlight-color, #e8590c) !important;
+  outline-offset: 2px !important;
+}

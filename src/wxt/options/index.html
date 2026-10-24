@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-i18n-lang="htmlLang">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="optionsTitle"></title>
+    <!-- 拡張の一覧の中ではなく、別のタブで開く。広く使えて、作りやすいため。 -->
+    <meta name="manifest.open_in_tab" content="true" />
+    <link rel="stylesheet" href="../../style/base.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="options">
+      <h1 data-i18n="optionsTitle"></h1>
+
+      <form id="settings">
+        <label class="field">
+          <input id="links-highlighted" name="linksHighlighted" type="checkbox" />
+          <span data-i18n="optionsLinksHighlighted"></span>
+        </label>
+        <label class="field">
+          <input id="highlight-color" name="highlightColor" type="color" />
+          <span data-i18n="optionsHighlightColor"></span>
+        </label>
+      </form>
+
+      <p id="status" class="status" aria-live="polite"></p>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

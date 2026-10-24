@@ -1,0 +1,56 @@
+{
+  "extName": {
+    "message": "拡張のひな形",
+    "description": "拡張の名前。ストアと拡張の一覧に出る。"
+  },
+  "extDescription": {
+    "message": "WXT で作るブラウザー拡張のひな形です。",
+    "description": "拡張の説明。ストアと拡張の一覧に出る。"
+  },
+  "htmlLang": {
+    "message": "ja",
+    "description": "この言語の名前（BCP 47）。HTML の lang 属性に入れる。"
+  },
+  "popupCounterLabel": {
+    "message": "押した回数"
+  },
+  "popupIncrement": {
+    "message": "1 つ増やす"
+  },
+  "popupIncrementFailed": {
+    "message": "増やせませんでした。もう一度試してください。"
+  },
+  "popupCountLinks": {
+    "message": "このページのリンクを数える"
+  },
+  "popupLinkCount": {
+    "message": "リンクは $COUNT$ 個あります。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "12"
+      }
+    }
+  },
+  "popupCountLinksFailed": {
+    "message": "このページでは数えられません。ページを開き直してから試してください。"
+  },
+  "popupOpenOptions": {
+    "message": "設定を開く"
+  },
+  "optionsTitle": {
+    "message": "設定"
+  },
+  "optionsLinksHighlighted": {
+    "message": "ページのリンクを枠で囲む"
+  },
+  "optionsHighlightColor": {
+    "message": "枠の色"
+  },
+  "optionsSaved": {
+    "message": "保存しました。"
+  },
+  "optionsSaveFailed": {
+    "message": "保存できませんでした。もう一度試してください。"
+  }
+}
