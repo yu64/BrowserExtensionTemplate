@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import stylistic from "@stylistic/eslint-plugin";
+import reactHooks from "eslint-plugin-react-hooks";
 import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
@@ -65,6 +66,8 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
+  // React のフックの決まり（呼ぶ場所・依存の配列など）を確かめる。
+  reactHooks.configs.flat.recommended,
   stylistic.configs.customize({
     indent: 2,
     quotes: "double",
@@ -91,6 +94,8 @@ export default defineConfig(
         fixStyle: "separate-type-imports",
       }],
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+      // 依存の配列の書き漏れは誤りにする。わざと外すときは、eslint-disable のコメントに理由を書く決まりのため。
+      "react-hooks/exhaustive-deps": "error",
       // ===== クラス =====
       "@typescript-eslint/explicit-member-accessibility": ["error", { accessibility: "explicit" }],
       "@typescript-eslint/naming-convention": ["error", {

@@ -16,6 +16,9 @@ export default defineConfig({
   entrypointsDir: "wxt",
   // 自動の読み込みを切る。どこから来た値かを、import の行で読めるようにするため。
   imports: false,
+  // 拡張のページ（ポップアップ・設定画面）を React で書く。
+  // React を import しない入り口（背景・内容スクリプト）の出力には、React は入らない。
+  modules: ["@wxt-dev/module-react"],
   manifest: ({ browser }) => ({
     // 名前と説明は、言語ごとのファイル（public/_locales）から引く。
     name: "__MSG_extName__",
