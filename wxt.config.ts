@@ -1,3 +1,4 @@
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "wxt";
 
 // #############################################################################
@@ -19,6 +20,8 @@ export default defineConfig({
   // 拡張のページ（ポップアップ・設定画面）を React で書く。
   // React を import しない入り口（背景・内容スクリプト）の出力には、React は入らない。
   modules: ["@wxt-dev/module-react"],
+  // 拡張のページの見た目は Tailwind CSS で書く（src/style/app.css）。
+  vite: () => ({ plugins: [tailwindcss()] }),
   manifest: ({ browser }) => ({
     // 名前と説明は、言語ごとのファイル（public/_locales）から引く。
     name: "__MSG_extName__",
