@@ -1,7 +1,8 @@
 # ブラウザー拡張のひな形（WXT）
 
 [WXT](https://wxt.dev/) で作るブラウザー拡張のひな形です。
-UI のフレームワークは使わず、素の TypeScript で書いています。
+拡張のページ（ポップアップ・設定画面）は React 19 で、背景と内容スクリプトは素の TypeScript で書いています。
+React は、それを読み込む画面の出力にだけ入ります。背景と内容スクリプトの出力には入りません。
 Chrome・Edge（MV3）と Firefox（MV2）に、同じソースから出力できます。
 対応するのは Chrome 99 以上、Firefox 140 以上（Android 版は 142 以上）です。
 文言は日本語と英語があり、そのどちらでもない言語の人には英語で出します。
@@ -10,8 +11,8 @@ Chrome・Edge（MV3）と Firefox（MV2）に、同じソースから出力で�
 
 | 種類 | 中身 |
 | --- | --- |
-| 枠組み | WXT 0.21 ／ Vite 8 ／ TypeScript 6 |
-| 検査 | ESLint 10（typescript-eslint の strict ＋ 決まりに合わせた規則）／ `tsc --noEmit` |
+| 枠組み | WXT 0.21 ／ Vite 8 ／ TypeScript 6 ／ React 19（`@wxt-dev/module-react`） |
+| 検査 | ESLint 10（typescript-eslint の strict ＋ React のフックの規則 ＋ 決まりに合わせた規則）／ `tsc --noEmit` |
 | 単体試験 | Vitest 5 ＋ WXT の偽ブラウザー（`fakeBrowser`） |
 | E2E 試験 | Playwright で、インストールしてある Chrome に拡張を読み込んで動かす |
 | 開発 | `web-ext` で開発用のブラウザーを自動で開き、変更をすぐ反映 |
@@ -23,8 +24,8 @@ Chrome・Edge（MV3）と Firefox（MV2）に、同じソースから出力で�
 | 入り口 | ファイル | すること |
 | --- | --- | --- |
 | 背景 | `src/wxt/background.ts` | 数を増やす要求を受けて保存する。数をツールバーのバッジに出す。 |
-| ポップアップ | `src/wxt/popup/` | 数を出して増やす。今のタブのリンクを内容スクリプトに数えさせる。設定画面を開く。 |
-| 設定画面 | `src/wxt/options/` | 「リンクを枠で囲む」と枠の色を変える。変えたらすぐ保存する。 |
+| ポップアップ（React） | `src/wxt/popup/` | 数を出して増やす。今のタブのリンクを内容スクリプトに数えさせる。設定画面を開く。 |
+| 設定画面（React） | `src/wxt/options/` | 「リンクを枠で囲む」と枠の色を変える。変えたらすぐ保存する。 |
 | 内容スクリプト | `src/wxt/links.content/` | リンクを数える要求に答える。設定に合わせて、リンクを枠で囲む。 |
 
 入り口から使う部品は、2つのフォルダーに分けて置いています。
@@ -44,8 +45,8 @@ Chrome・Edge（MV3）と Firefox（MV2）に、同じソースから出力で�
 | --- | --- |
 | `Messenger.ts` | 型の付いたメッセージのやり取り。要求と返答の形を、受け取ったときに確かめる。 |
 | `SerialQueue.ts` | 非同期の仕事を1つずつ順に動かす。「読んでから書く」保存が重なって、変更が消えるのを防ぐ。 |
-| `i18n.ts` | 文言を引く `messageOf` と、HTML の `data-i18n`（中身）・`data-i18n-lang`（lang 属性）に文言を入れる `applyI18n`。文言の名前の型は、WXT が文言ファイルから作る。 |
-| `dom.ts` | 要素を型を確かめて取り出す `elementOf`。 |
+| `i18n.ts` | 文言を引く `messageOf`。文言の名前の型は、WXT が文言ファイルから作る。 |
+| `useStoredValue.ts` | 保存した値を読み、変わったら描き直す React のフック。読み込む関数と見張る関数を渡して使う。 |
 | `guards.ts` | 外から来た値の型を確かめる関数。 |
 
 ## 使い方

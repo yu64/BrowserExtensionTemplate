@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-WXT で作るブラウザー拡張のひな形。UI のフレームワークは使わず、素の TypeScript で書く。
+WXT で作るブラウザー拡張のひな形。拡張のページ（ポップアップ・設定画面）は React 19、背景と内容スクリプトは素の TypeScript で書く。
 
 ## コードの書き方
 
@@ -32,9 +32,12 @@ WXT で作るブラウザー拡張のひな形。UI のフレームワークは�
 
 - 自動の読み込み（auto-import）は切ってある。`wxt/browser` や `wxt/utils/...` から明示して読み込む。
 - メッセージの種類は `src/base/protocol.ts` に足す。型と確かめる関数を両方足す。
-- 画面の文言は `public/_locales/*/messages.json` に書き、HTML では `data-i18n`（中身）と `data-i18n-lang`（lang 属性）、コードでは `messageOf` で引く。文言を足したら `npx wxt prepare` で型を作り直す。
+- 画面の文言は `public/_locales/*/messages.json` に書き、コードでは `messageOf` で引く。HTML と manifest では `__MSG_名前__` の形で書く。文言を足したら `npx wxt prepare` で型を作り直す。
+- 画面の `lang` と題名は、各画面の `main.tsx` が `messageOf("htmlLang")` などで入れる。
 - 保存する値は `wxt/utils/storage` の `storage.defineItem` で定義する。形を変えるときは `version` と `migrations` を使う。
 - 保存した値は、読んだときに形を確かめる（`settingsOf`・`counterOf` を見本にする）。保存する部品の外には、確かめる前の値（storage の item）を出さない。いくつかの値は、1つのまとまりにせず項目ごとに保存する（`Settings.ts`）。別のタブや端末と同時に書いても、変更が消えないようにするため。「読んでから書く」保存は `SerialQueue` で順番待ちさせ、書くのは1か所にまとめる（`Counter.ts` は背景だけが書く）。
-- 画面（ポップアップ・設定画面）は、操作を受け付けられるようにし、保存した値を出してから、最後に文言を入れる。E2E 試験は、文言が入ったことを「準備ができた」しるしとして待つ。
+- 画面（ポップアップ・設定画面）は、保存した値を読み終えるまで何も描かない（`useStoredValue` が `undefined` の間は `undefined` を返す）。描いたときには操作を受け付けられる。E2E 試験は、見出しが出たことを「準備ができた」しるしとして待つ。
+- 保存した値は `useStoredValue(読み込む関数, 見張る関数)` で読む。渡す関数は、ファイルの外で定義したもの（描くたびに作り直さないもの）にする。
+- React に依存しないもの（背景・内容スクリプト・`src/base`・`src/util` の多く）では React を読み込まない。
 - 画面の操作で失敗したら、画面にも知らせる（`console.error` だけにしない）。
 - 見張り（`watch`）は、最初の値を読む前に始める。読む間の変化を取りこぼさないため。
