@@ -7,24 +7,24 @@ import { messenger } from "@/base/protocol";
 // MARK: 内部関数
 
 /**
- * 背景の本体。
- * MV3 の背景はすぐ止まり、また起きる。起きるたびにここが動くので、受け手は毎回同期で登録する。
+ * バックグラウンドの処理。
+ * MV3 のバックグラウンド（Service Worker）は、すぐに停止し、必要なときに再起動する。起動のたびにここが実行されるので、リスナーは毎回同期的に登録する。
  */
 function main(): void
 {
   messenger.listen({ incrementCounter });
 
-  // 数が変わったら、どこで変えたかに関わらずバッジに出す。
+  // カウンターの値が変更されたら、変更元に関係なくバッジに表示する。
   watchCounter(showBadge);
   void loadCounter().then(showBadge);
 }
 
 /**
- * 数をツールバーのボタンのバッジに出す。
+ * カウンターの値を、ツールバーのボタンのバッジに表示する。
  */
 function showBadge(count: number): void
 {
-  // MV2（Firefox の既定）には action がなく、browserAction を使うため分ける。
+  // MV2（Firefox の初期設定）には action がなく、browserAction を使用するため分岐する。
   const action = (
     (import.meta.env.MANIFEST_VERSION === 3)
     ? browser.action
@@ -37,6 +37,6 @@ function showBadge(count: number): void
 // MARK: 初期化
 
 /**
- * 背景の入り口。WXT が既定の書き出しを求めるため、default export にする。
+ * バックグラウンドのエントリポイント。WXT が default export を求めるため、default export にする。
  */
 export default defineBackground(main);

@@ -6,58 +6,58 @@ import { defineConfig } from "wxt";
 
 /**
  * WXT の設定。
- * WXT が既定の書き出しを求めるため、このファイルだけは default export にする。
+ * WXT が default export を求めるため、default export にする。
  * @see https://wxt.dev/api/config.html
  */
 export default defineConfig({
-  // ソースを src にまとめる。設定ファイルとソースを見分けやすくするため。
+  // ソースを src にまとめる。設定ファイルとソースを区別しやすくするため。
   srcDir: "src",
-  // 入り口（WXT がマニフェストを作るもとになるファイル）は src/wxt に置く。
-  // WXT の決まりに従う場所だと、名前で分かるようにするため。
+  // エントリポイント（WXT が manifest を生成する元のファイル）は src/wxt に置く。
+  // WXT のルールに従う場所であることを、名前で分かるようにするため。
   entrypointsDir: "wxt",
-  // 自動の読み込みを切る。どこから来た値かを、import の行で読めるようにするため。
+  // 自動インポートを無効にする。値の取得元を、import の行で確認できるようにするため。
   imports: false,
-  // 拡張のページ（ポップアップ・設定画面）を React で書く。
-  // React を import しない入り口（背景・内容スクリプト）の出力には、React は入らない。
+  // 拡張機能のページ（ポップアップ・設定画面）を React で作成する。
+  // React を import しないエントリポイント（バックグラウンド・コンテンツスクリプト）の出力には、React は含まれない。
   modules: ["@wxt-dev/module-react"],
-  // 拡張のページの見た目は Tailwind CSS で書く（src/style/app.css）。
+  // 拡張機能のページのスタイルは Tailwind CSS で指定する（src/style/app.css）。
   vite: () => ({ plugins: [tailwindcss()] }),
   manifest: ({ browser }) => ({
-    // 名前と説明は、言語ごとのファイル（public/_locales）から引く。
+    // 名前と説明は、言語ごとのメッセージファイル（public/_locales）から取得する。
     name: "__MSG_extName__",
     description: "__MSG_extDescription__",
-    // 利用者の言語の文言がないときに使う言語。日本語でも英語でもない人には、英語で出すため。
+    // ユーザの言語のメッセージがないときに使用する言語。日本語でも英語でもないユーザには、英語で表示するため。
     default_locale: "en",
     permissions: ["storage"],
-    // ブラウザーごとの設定。相手のブラウザーが知らない項目を出すと警告が出るので、分けて足す。
+    // ブラウザごとの設定。対応していない項目を含めると警告が出るので、ブラウザごとに分けて追加する。
     ...(
       (browser === "firefox")
       ? {
         browser_specific_settings: {
           gecko: {
-            // storage.sync を使うには、拡張の ID が要る。自分の拡張にするときに書き換える。
+            // storage.sync を使用するには、拡張機能の ID が必要。自分の拡張機能にするときに変更する。
             id: "extension-template@example.com",
-            // data_collection_permissions を読めるのが Firefox 140 からなので、それより前には入れさせない。
+            // data_collection_permissions に対応したのが Firefox 140 からなので、それより前のバージョンにはインストールさせない。
             strict_min_version: "140.0",
-            // この拡張は、利用者のデータをどこにも送らない。Firefox は新しい拡張にこの申告を求める。
+            // この拡張機能は、ユーザのデータを外部に送信しない。Firefox は新しい拡張機能にこの申告を求める。
             data_collection_permissions: { required: ["none"] },
           },
-          // Android 版の Firefox が data_collection_permissions を読めるのは 142 からなので、分けて決める。
+          // Android 版の Firefox が data_collection_permissions に対応したのは 142 からなので、別に指定する。
           gecko_android: { strict_min_version: "142.0" },
         },
       }
       : {
-        // runtime.sendMessage・tabs.sendMessage が Promise を返すのが Chrome 99 からなので、それより前には入れさせない。
+        // runtime.sendMessage・tabs.sendMessage が Promise を返すのが Chrome 99 からなので、それより前のバージョンにはインストールさせない。
         minimum_chrome_version: "99",
       }
     ),
   }),
   webExt: {
-    // 開発用のブラウザーで最初に開くページ。内容スクリプトをすぐ試せるようにするため。
+    // 開発用のブラウザで最初に開くページ。コンテンツスクリプトをすぐに試せるようにするため。
     startUrls: ["https://example.com/"],
-    // 開発用の Chrome のプロファイルを残す。ログインや設定を、開き直すたびにやり直さずに済むため。
-    // .wxt は git に載せないので、人ごとのプロファイルになる。
+    // 開発用の Chrome のプロファイルを保持する。ログインや設定を、起動のたびにやり直さずに済むため。
+    // .wxt は git の管理対象外なので、開発者ごとのプロファイルになる。
     chromiumArgs: ["--user-data-dir=./.wxt/chrome-data"],
-    // 人ごとに変えたいときは、web-ext.config.ts を作って上書きする（git には載せない）。
+    // 開発者ごとに変更したいときは、web-ext.config.ts を作成して上書きする（git の管理対象外）。
   },
 });

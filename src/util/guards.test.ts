@@ -3,7 +3,7 @@ import { guardedValueOf, isBoolean, isNumber, isRecord, isString, isUndefined } 
 
 describe("isRecord", () =>
 {
-  it("ふつうのオブジェクトだけを通す", () =>
+  it("通常のオブジェクトだけを通す", () =>
   {
     expect(isRecord({})).toBe(true);
     expect(isRecord({ a: 1 })).toBe(true);
@@ -15,7 +15,7 @@ describe("isRecord", () =>
 
 describe("isNumber", () =>
 {
-  it("有限の数だけを通す", () =>
+  it("有限の数値だけを通す", () =>
   {
     expect(isNumber(0)).toBe(true);
     expect(isNumber(-1.5)).toBe(true);
@@ -27,7 +27,7 @@ describe("isNumber", () =>
 
 describe("isString・isBoolean・isUndefined", () =>
 {
-  it("その型の値だけを通す", () =>
+  it("指定の型の値だけを通す", () =>
   {
     expect(isString("")).toBe(true);
     expect(isString(1)).toBe(false);

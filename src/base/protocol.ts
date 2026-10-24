@@ -5,16 +5,16 @@ import { Messenger } from "@/util/Messenger";
 // MARK: 型定義
 
 /**
- * この拡張でやり取りするメッセージの一覧。
- * 種類を足すときは、ここと下の `messenger` の確かめる関数を足す。
+ * この拡張機能で送受信するメッセージの一覧。
+ * 種別を追加するときは、ここと、下の `messenger` の検証する関数を追加する。
  */
 export type Protocol = {
-  /** 数を1つ増やす。背景が受け持つ。返答は増やした後の数。 */
+  /** カウンターの値を1つ増やす。バックグラウンドが担当する。レスポンスは増やした後の値。 */
   incrementCounter: {
     request: undefined;
     response: number;
   };
-  /** 開いているページのリンクを数える。内容スクリプトが受け持つ。 */
+  /** 開いているページのリンクを数える。コンテンツスクリプトが担当する。 */
   countLinks: {
     request: undefined;
     response: number;
@@ -25,8 +25,8 @@ export type Protocol = {
 // MARK: 状態
 
 /**
- * この拡張のメッセージを送り受けする窓口。
- * 背景・ポップアップ・内容スクリプトのどこからでも、これを使う。
+ * この拡張機能のメッセージを送受信するインスタンス。
+ * バックグラウンド・ポップアップ・コンテンツスクリプトのどこからでも、これを使用する。
  */
 export const messenger = new Messenger<Protocol>({
   incrementCounter: {

@@ -2,16 +2,16 @@
 // MARK: 型定義
 
 /**
- * 値がその型かを調べる関数。
+ * 値が指定の型かを判定する関数。
  */
 export type Guard<TValue> = (value: unknown) => value is TValue;
 
 // #############################################################################
-// MARK: 調べる
+// MARK: 判定
 
 /**
- * 値が、文字列をキーに持つオブジェクトかを調べる。
- * 外から来た値（メッセージなど）の中身を、`as` を使わずに読むため。
+ * 値が、文字列をキーに持つオブジェクトかを判定する。
+ * 外部から受け取った値（メッセージなど）の中身を、`as` を使わずに参照するため。
  */
 export function isRecord(value: unknown): value is Record<string, unknown>
 {
@@ -19,8 +19,8 @@ export function isRecord(value: unknown): value is Record<string, unknown>
 }
 
 /**
- * 値が `undefined` かを調べる。
- * 中身のない要求を確かめるときに使う。
+ * 値が `undefined` かを判定する。
+ * 中身のないリクエストの検証に使用する。
  */
 export function isUndefined(value: unknown): value is undefined
 {
@@ -28,8 +28,8 @@ export function isUndefined(value: unknown): value is undefined
 }
 
 /**
- * 値が有限の数かを調べる。
- * `NaN` や無限大は、数えた結果としておかしいので外す。
+ * 値が有限の数値かを判定する。
+ * `NaN` と無限大は、数値として扱わない。
  */
 export function isNumber(value: unknown): value is number
 {
@@ -37,7 +37,7 @@ export function isNumber(value: unknown): value is number
 }
 
 /**
- * 値が文字列かを調べる。
+ * 値が文字列かを判定する。
  */
 export function isString(value: unknown): value is string
 {
@@ -45,7 +45,7 @@ export function isString(value: unknown): value is string
 }
 
 /**
- * 値が真偽かを調べる。
+ * 値が真偽値かを判定する。
  */
 export function isBoolean(value: unknown): value is boolean
 {
@@ -53,11 +53,11 @@ export function isBoolean(value: unknown): value is boolean
 }
 
 // #############################################################################
-// MARK: 読み取る
+// MARK: 取得
 
 /**
- * 値が型に合えばそのまま、合わなければ代わりの値を返す。
- * 保存した値のように、壊れているかもしれない値を読むときに使う。
+ * 値が型に合えばそのまま返し、合わなければ代わりの値を返す。
+ * 保存済みの値のように、破損している可能性がある値の取得に使用する。
  */
 export function guardedValueOf<TValue>(value: unknown, guard: Guard<TValue>, fallback: TValue): TValue
 {

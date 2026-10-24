@@ -7,7 +7,7 @@ import type { Guard } from "./guards";
 // MARK: 型定義
 
 /**
- * メッセージの種類ごとに、要求と返答の型を並べたもの。
+ * メッセージの種別ごとの、リクエストとレスポンスの型。
  */
 export type ProtocolShape = Record<string, {
   request: unknown;
@@ -15,13 +15,13 @@ export type ProtocolShape = Record<string, {
 }>;
 
 /**
- * メッセージの種類の名前。
+ * メッセージの種別の名前。
  */
 export type MessageType<TProtocol extends ProtocolShape> = Extract<keyof TProtocol, string>;
 
 /**
- * 種類ごとに、要求と返答を確かめる関数を並べたもの。
- * 拡張の中のやり取りでも、形を確かめてから使う。古い版の画面が残っていると、形がずれることがあるため。
+ * 種別ごとの、リクエストとレスポンスを検証する関数。
+ * 拡張機能の内部の通信でも、形式を検証してから使用する。古いバージョンの画面が残っていると、形式が合わないことがあるため。
  */
 export type Guards<TProtocol extends ProtocolShape> = {
   [TType in MessageType<TProtocol>]: {
@@ -31,8 +31,8 @@ export type Guards<TProtocol extends ProtocolShape> = {
 };
 
 /**
- * 種類ごとに、要求を受けて返答を作る関数を並べたもの。
- * 受け持たない種類は省く。省いた種類には返答しないので、ほかの受け手が返答できる。
+ * 種別ごとの、リクエストを処理してレスポンスを返す関数（ハンドラー）。
+ * 担当しない種別は省略する。省略した種別には応答しないので、ほかのリスナーが応答できる。
  */
 export type Handlers<TProtocol extends ProtocolShape> = {
   [TType in MessageType<TProtocol>]?: (
@@ -42,9 +42,9 @@ export type Handlers<TProtocol extends ProtocolShape> = {
 };
 
 /**
- * 送る関数の、要求の引数。
- * 要求が `undefined` だけの種類は、要求を書かずに送れるようにする。
- * 条件型の条件は、かっこで囲むと構文の誤りになるので、全体だけを囲む。
+ * 送信する関数の、リクエストの引数。
+ * リクエストが `undefined` だけの種別は、リクエストを省略して送信できるようにする。
+ * 条件型の条件は、かっこで囲むと構文エラーになるので、全体だけを囲む。
  */
 export type RequestArgs<TRequest> = (
   [TRequest] extends [undefined]
@@ -53,7 +53,7 @@ export type RequestArgs<TRequest> = (
 );
 
 /**
- * 送るときの包み。
+ * 送信するデータの形式（エンベロープ）。
  */
 type Envelope = {
   type: string;
@@ -61,8 +61,8 @@ type Envelope = {
 };
 
 /**
- * 返すときの包み。
- * 受け手で起きた失敗を、送り手で例外として受け取れるようにするため。
+ * 応答するデータの形式。
+ * 受信側で発生したエラーを、送信側で例外として受け取れるようにするため。
  */
 type Reply = (
   | {
@@ -79,15 +79,15 @@ type Reply = (
 // MARK: クラス
 
 /**
- * 型の付いたメッセージのやり取りを受け持つ。
- * 送る側も受ける側も同じインスタンスを使うので、種類と型の食い違いを型検査で見つけられる。
+ * 型付きのメッセージの送受信を担当する。
+ * 送信側と受信側で同じインスタンスを使用するので、種別と型の不一致を型検査で検出できる。
  */
 export class Messenger<TProtocol extends ProtocolShape>
 {
   readonly #guards: Guards<TProtocol>;
 
   /**
-   * @param guards 種類ごとに、要求と返答を確かめる関数。
+   * @param guards 種別ごとの、リクエストとレスポンスを検証する関数。
    */
   public constructor(guards: Guards<TProtocol>)
   {
@@ -95,11 +95,11 @@ export class Messenger<TProtocol extends ProtocolShape>
   }
 
   // ===========================================================================
-  // MARK: 送る
+  // MARK: 送信
 
   /**
-   * 拡張のページと背景（background）へ送り、返答を待つ。
-   * 内容スクリプトには届かない。内容スクリプトへは `sendToTab` を使う。
+   * 拡張機能のページとバックグラウンドへ送信し、応答を待つ。
+   * コンテンツスクリプトには届かない。コンテンツスクリプトへは `sendToTab` を使用する。
    */
   public send = async <TType extends MessageType<TProtocol>>(
     type: TType,
@@ -111,7 +111,7 @@ export class Messenger<TProtocol extends ProtocolShape>
   };
 
   /**
-   * タブの内容スクリプトへ送り、返答を待つ。
+   * タブのコンテンツスクリプトへ送信し、応答を待つ。
    */
   public sendToTab = async <TType extends MessageType<TProtocol>>(
     tabId: number,
@@ -124,20 +124,20 @@ export class Messenger<TProtocol extends ProtocolShape>
   };
 
   // ===========================================================================
-  // MARK: 受ける
+  // MARK: 受信
 
   /**
-   * メッセージを受け始める。
-   * @returns 受けるのをやめる関数。
+   * メッセージの受信を開始する。
+   * @returns 受信を終了する関数。
    */
   public listen = (handlers: Handlers<TProtocol>): () => void =>
   {
     const receive = this.#receive;
 
     /**
-     * ブラウザーから呼ばれる受け手。
-     * 返答を非同期で返すときは `true` を返す決まりなので、その形に合わせる。
-     * Promise を返す書き方は、ブラウザーによって動かないため使わない。
+     * ブラウザから呼び出されるリスナー。
+     * 非同期で応答するときは `true` を返す仕様なので、それに合わせる。
+     * Promise を返す書き方は、ブラウザによって動作しないため使用しない。
      */
     function listener(
       message: unknown,
@@ -159,8 +159,8 @@ export class Messenger<TProtocol extends ProtocolShape>
   // MARK: 内部関数
 
   /**
-   * 送る包みを作る。
-   * @param args 送る関数が受けた要求の引数。省いたときは、要求を `undefined` にする。
+   * 送信するデータを作成する。
+   * @param args 送信する関数が受け取ったリクエストの引数。省略したときは、リクエストを `undefined` にする。
    */
   #envelopeOf = (type: string, args: readonly unknown[]): Envelope =>
   {
@@ -171,17 +171,17 @@ export class Messenger<TProtocol extends ProtocolShape>
   };
 
   /**
-   * 返答の包みを開き、中身を確かめて返す。
+   * 応答のデータから中身を取り出し、検証して返す。
    */
   #valueOf = <TType extends MessageType<TProtocol>>(
     type: TType,
     reply: unknown,
   ): TProtocol[TType]["response"] =>
   {
-    // 受け手がいないと、返答は undefined になる。
+    // リスナーがいないと、応答は undefined になる。
     if(!isReply(reply))
     {
-      throw new Error(`返答がありません: ${type}`);
+      throw new Error(`応答がありません: ${type}`);
     }
     if(!reply.ok)
     {
@@ -190,14 +190,14 @@ export class Messenger<TProtocol extends ProtocolShape>
     const guard = this.#guards[type].response;
     if(!guard(reply.value))
     {
-      throw new Error(`返答の形が違います: ${type}`);
+      throw new Error(`レスポンスの形式が不正です: ${type}`);
     }
     return reply.value;
   };
 
   /**
-   * 届いたメッセージを、受け持つ関数へ渡す。
-   * @returns 返答するときは `true`。受け持たないときは `undefined`。
+   * 受信したメッセージを、担当するハンドラーへ渡す。
+   * @returns 応答するときは `true`。担当しないときは `undefined`。
    */
   #receive = (
     handlers: Handlers<TProtocol>,
@@ -220,10 +220,10 @@ export class Messenger<TProtocol extends ProtocolShape>
   };
 
   /**
-   * 要求を確かめてから受け持つ関数を呼び、返答の包みを作る。
-   * @returns 受け持つ関数がないときは `undefined`。
+   * リクエストを検証してからハンドラーを呼び出し、応答のデータを作成する。
+   * @returns ハンドラーがないときは `undefined`。
    */
-  // 型引数は1度しか出てこないが、受け持つ関数と確かめる関数の型を同じ種類で結び付けるために要る。
+  // 型引数は1回しか使用しないが、ハンドラーと検証する関数の型を、同じ種別で結び付けるために必要。
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   #replyOf = <TType extends MessageType<TProtocol>>(
     handlers: Handlers<TProtocol>,
@@ -242,10 +242,10 @@ export class Messenger<TProtocol extends ProtocolShape>
     {
       return Promise.resolve({
         ok: false,
-        error: `要求の形が違います: ${type}`,
+        error: `リクエストの形式が不正です: ${type}`,
       });
     }
-    // 受け持つ関数が同期で投げた例外も、返答に変えるため、then の中で呼ぶ。
+    // ハンドラーが同期的に投げた例外も応答に変換するため、then の中で呼び出す。
     return Promise.resolve()
       .then(() => handler(request, sender))
       .then(
@@ -261,7 +261,7 @@ export class Messenger<TProtocol extends ProtocolShape>
   };
 
   /**
-   * 文字列が、このインスタンスの知っている種類かを調べる。
+   * 文字列が、このインスタンスが扱う種別かを判定する。
    */
   #isType = (type: string): type is MessageType<TProtocol> =>
   {
@@ -273,7 +273,7 @@ export class Messenger<TProtocol extends ProtocolShape>
 // MARK: 内部関数
 
 /**
- * 値が、送るときの包みかを調べる。
+ * 値が、送信するデータの形式かを判定する。
  */
 function isEnvelope(value: unknown): value is Envelope
 {
@@ -281,7 +281,7 @@ function isEnvelope(value: unknown): value is Envelope
 }
 
 /**
- * 値が、返すときの包みかを調べる。
+ * 値が、応答するデータの形式かを判定する。
  */
 function isReply(value: unknown): value is Reply
 {
@@ -296,7 +296,7 @@ function isReply(value: unknown): value is Reply
 }
 
 /**
- * 例外から、送り手に伝える文を取り出す。
+ * 例外から、送信側に伝えるメッセージを取り出す。
  */
 function errorMessageOf(error: unknown): string
 {

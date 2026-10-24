@@ -4,21 +4,21 @@ import { defaultSettings, loadSettings, settingsOf, updateSettings, watchSetting
 
 describe("settingsOf", () =>
 {
-  it("保存がないときは既定値にする", () =>
+  it("保存済みの値がないときは初期値にする", () =>
   {
     expect(settingsOf(null)).toEqual(defaultSettings);
   });
 
-  it("形の違う値は既定値にする", () =>
+  it("不正な形式の値は初期値にする", () =>
   {
-    expect(settingsOf("壊れた値")).toEqual(defaultSettings);
+    expect(settingsOf("破損した値")).toEqual(defaultSettings);
     expect(settingsOf({
       linksHighlighted: "yes",
       highlightColor: "red; display: none",
     })).toEqual(defaultSettings);
   });
 
-  it("欠けた項目を既定値で埋める", () =>
+  it("欠けている項目を初期値で補う", () =>
   {
     expect(settingsOf({ linksHighlighted: true })).toEqual({
       ...defaultSettings,
@@ -29,7 +29,7 @@ describe("settingsOf", () =>
 
 describe("loadSettings", () =>
 {
-  it("保存した値が壊れていたら、その項目だけ既定値にする", async () =>
+  it("保存済みの値が破損していたら、その項目だけ初期値にする", async () =>
   {
     await storage.setItem("sync:linksHighlighted", "yes");
     await storage.setItem("sync:highlightColor", "#123456");
@@ -43,7 +43,7 @@ describe("loadSettings", () =>
 
 describe("updateSettings", () =>
 {
-  it("変えた項目だけを変えて保存する", async () =>
+  it("変更した項目だけを保存する", async () =>
   {
     await updateSettings({ highlightColor: "#000000" });
     await updateSettings({ linksHighlighted: true });
@@ -54,7 +54,7 @@ describe("updateSettings", () =>
     });
   });
 
-  it("重なって変えても、どちらの変更も残る", async () =>
+  it("同時に変更しても、どちらの変更も残る", async () =>
   {
     await Promise.all([
       updateSettings({ linksHighlighted: true }),
@@ -67,9 +67,9 @@ describe("updateSettings", () =>
     });
   });
 
-  it("別のページや端末が同時に違う項目を書いても、その変更を消さない", async () =>
+  it("別のページや端末が同時に別の項目を保存しても、その変更を失わない", async () =>
   {
-    // 別のページや端末からの書き込みを、保存先へ直に書いてまねる。
+    // 別のページや端末からの保存を、保存先へ直接保存して再現する。
     await Promise.all([
       updateSettings({ linksHighlighted: true }),
       storage.setItem("sync:highlightColor", "#abcdef"),
@@ -84,7 +84,7 @@ describe("updateSettings", () =>
 
 describe("watchSettings", () =>
 {
-  it("どの項目が変わっても、欠けのない設定で知らせる", async () =>
+  it("どの項目が変更されても、全項目がそろった設定で通知する", async () =>
   {
     const onChange = vi.fn();
     const unwatch = watchSettings(onChange);
@@ -109,7 +109,7 @@ describe("watchSettings", () =>
     unwatch();
   });
 
-  it("見張るのをやめたら、知らせない", async () =>
+  it("監視を終了したら、通知しない", async () =>
   {
     const onChange = vi.fn();
     const unwatch = watchSettings(onChange);

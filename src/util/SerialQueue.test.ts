@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SerialQueue } from "./SerialQueue";
 
 /**
- * 決めた時間だけ待つ。
+ * 指定した時間だけ待つ。
  */
 function delay(milliseconds: number): Promise<void>
 {
@@ -11,13 +11,13 @@ function delay(milliseconds: number): Promise<void>
 
 describe("SerialQueue", () =>
 {
-  it("読んでから書く仕事が重なっても、変更が消えない", async () =>
+  it("取得してから保存する処理が重なっても、変更が失われない", async () =>
   {
     const queue = new SerialQueue();
     let stored = 0;
 
     /**
-     * 読んでから、少し待って書く。待つ間に別の仕事が割り込めるようにする。
+     * 取得してから、少し待って保存する。待つ間に別の処理が割り込めるようにする。
      */
     async function increment(): Promise<number>
     {
@@ -37,14 +37,14 @@ describe("SerialQueue", () =>
     expect(stored).toBe(3);
   });
 
-  it("仕事が失敗しても、次の仕事は動く", async () =>
+  it("処理が失敗しても、次の処理は実行される", async () =>
   {
     const queue = new SerialQueue();
 
     const failed = queue.run(() => Promise.reject(new Error("失敗しました")));
-    const next = queue.run(() => Promise.resolve("動きました"));
+    const next = queue.run(() => Promise.resolve("実行しました"));
 
     await expect(failed).rejects.toThrow("失敗しました");
-    expect(await next).toBe("動きました");
+    expect(await next).toBe("実行しました");
   });
 });

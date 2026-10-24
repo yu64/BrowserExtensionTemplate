@@ -4,12 +4,12 @@ import { describe, expect, it } from "vitest";
 import { isRecord } from "@/util/guards";
 
 /**
- * 文言のファイルが並ぶフォルダー。
+ * メッセージファイルのフォルダ。
  */
 const localesDir = join(import.meta.dirname, "../public/_locales");
 
 /**
- * 文言の名前を書いてあるファイル。src の中のコードと HTML、WXT の設定（manifest の __MSG_ の形）。
+ * メッセージの名前を記述しているファイル。src の中のコードと HTML、WXT の設定（manifest の __MSG_ の形式）。
  */
 const sourceFiles = [
   ...readdirSync(join(import.meta.dirname, "../src"), {
@@ -22,8 +22,8 @@ const sourceFiles = [
 ];
 
 /**
- * 文言の名前を拾う書き方。`__MSG_名前__`（HTML・manifest）と `messageOf("名前"`（コード）。
- * コードの名前は型でも確かめているが、HTML と manifest の名前は型で確かめられないので、ここで確かめる。
+ * メッセージの名前を抽出するパターン。`__MSG_名前__`（HTML・manifest）と `messageOf("名前"`（コード）。
+ * コードの名前は型でも検査しているが、HTML と manifest の名前は型で検査できないので、ここで確認する。
  */
 const messageNamePatterns = [
   /__MSG_(\w+)__/g,
@@ -31,15 +31,15 @@ const messageNamePatterns = [
 ];
 
 /**
- * 言語ごとの文言のファイルを読む。
- * @returns 文言の名前ごとに、差し込む値（placeholders）の名前を並べたもの。
+ * 言語ごとのメッセージファイルを読み込む。
+ * @returns メッセージの名前ごとの、プレースホルダー（placeholders）の名前の一覧。
  */
 function placeholdersOf(locale: string): Record<string, string[]>
 {
   const json: unknown = JSON.parse(readFileSync(join(localesDir, locale, "messages.json"), "utf8"));
   if(!isRecord(json))
   {
-    throw new Error(`文言のファイルの形が違います: ${locale}`);
+    throw new Error(`メッセージファイルの形式が不正です: ${locale}`);
   }
   return Object.fromEntries(Object.entries(json).map(([key, entry]) =>
   {
@@ -52,21 +52,21 @@ function placeholdersOf(locale: string): Record<string, string[]>
   }));
 }
 
-describe("文言のファイル", () =>
+describe("メッセージファイル", () =>
 {
-  // フォルダーだけを言語とみなす。OS が作る隠しファイル（.DS_Store など）を拾わないため。
+  // フォルダだけを言語として扱う。OS が作成する隠しファイル（.DS_Store など）を除外するため。
   const locales = readdirSync(localesDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name);
   const base = placeholdersOf("ja");
 
-  it.each(locales)("%s は、日本語と同じ名前と差し込む値を持つ", (locale) =>
+  it.each(locales)("%s は、日本語と同じ名前とプレースホルダーを持つ", (locale) =>
   {
     expect(placeholdersOf(locale)).toEqual(base);
   });
 });
 
-describe("使っている文言の名前", () =>
+describe("使用しているメッセージの名前", () =>
 {
   const known = Object.keys(placeholdersOf("ja"));
   const used = [...new Set(sourceFiles.flatMap((path) =>
@@ -77,12 +77,12 @@ describe("使っている文言の名前", () =>
 
   it("1つ以上見つかる", () =>
   {
-    // 拾う書き方が壊れて、何も確かめずに通るのを防ぐ。
+    // 抽出するパターンが壊れて、何も確認せずに成功するのを防ぐ。
     expect(used.length).toBeGreaterThan(0);
   });
 
-  // HTML や manifest の書き間違いは、拡張を開くまで分からないので、ここで先に見つける。
-  it.each(used)("%s が文言のファイルにある", (name) =>
+  // HTML や manifest の記述ミスは、拡張機能を開くまで分からないので、ここで事前に検出する。
+  it.each(used)("%s がメッセージファイルにある", (name) =>
   {
     expect(known).toContain(name);
   });
@@ -90,7 +90,7 @@ describe("使っている文言の名前", () =>
 
 describe("既定の言語", () =>
 {
-  it("manifest の default_locale の文言のファイルがある", () =>
+  it("manifest の default_locale のメッセージファイルがある", () =>
   {
     const config = readFileSync(join(import.meta.dirname, "../wxt.config.ts"), "utf8");
     const locale = /default_locale:\s*"([^"]+)"/.exec(config)?.[1] ?? "";

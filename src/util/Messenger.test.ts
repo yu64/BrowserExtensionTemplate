@@ -19,7 +19,7 @@ type TestProtocol = {
 };
 
 /**
- * 試験で使う、3つの種類を持つ窓口を作る。
+ * テスト用の、3つの種別を持つインスタンスを作成する。
  */
 function createMessenger(): Messenger<TestProtocol>
 {
@@ -41,7 +41,7 @@ function createMessenger(): Messenger<TestProtocol>
 
 describe("Messenger", () =>
 {
-  it("送った要求に、受け手の返答が返る", async () =>
+  it("送信したリクエストに、ハンドラーの応答が返る", async () =>
   {
     const messenger = createMessenger();
     messenger.listen({ double: (value) => value * 2 });
@@ -49,7 +49,7 @@ describe("Messenger", () =>
     expect(await messenger.send("double", 21)).toBe(42);
   });
 
-  it("要求が undefined の種類は、要求を省いて送れる", async () =>
+  it("リクエストが undefined の種別は、リクエストを省略して送信できる", async () =>
   {
     const messenger = createMessenger();
     messenger.listen({ ping: () => "pong" });
@@ -57,19 +57,19 @@ describe("Messenger", () =>
     expect(await messenger.send("ping")).toBe("pong");
   });
 
-  it("要求の要る種類は、要求を省くと型の誤りになる", () =>
+  it("リクエストが必要な種別は、省略すると型エラーになる", () =>
   {
     const messenger = createMessenger();
 
-    // 型だけを確かめる。関数は呼ばない。
+    // 型だけを確認する。関数は呼び出さない。
     expect(() =>
     {
-      // @ts-expect-error double には数の要求が要る。
+      // @ts-expect-error double には数値のリクエストが必要。
       void messenger.send("double");
     }).toBeTypeOf("function");
   });
 
-  it("非同期の受け手の返答も返る", async () =>
+  it("非同期のハンドラーの応答も返る", async () =>
   {
     const messenger = createMessenger();
     messenger.listen({ greet: (name) => Promise.resolve(`こんにちは、${name}`) });
@@ -77,7 +77,7 @@ describe("Messenger", () =>
     expect(await messenger.send("greet", "WXT")).toBe("こんにちは、WXT");
   });
 
-  it("受け手の例外は、送り手で例外になる", async () =>
+  it("ハンドラーの例外は、送信側で例外になる", async () =>
   {
     const messenger = createMessenger();
     messenger.listen({
@@ -90,7 +90,7 @@ describe("Messenger", () =>
     await expect(messenger.send("double", 1)).rejects.toThrow("失敗しました");
   });
 
-  it("受け持つ種類だけに返答する", async () =>
+  it("担当する種別だけに応答する", async () =>
   {
     const messenger = createMessenger();
     messenger.listen({ double: (value) => value * 2 });
@@ -100,12 +100,12 @@ describe("Messenger", () =>
     expect(await messenger.send("greet", "やあ")).toBe("やあ");
   });
 
-  it("要求の形が違えば、受け手を呼ばずに例外にする", async () =>
+  it("リクエストの形式が不正なら、ハンドラーを呼び出さずにエラーを返す", async () =>
   {
     const messenger = createMessenger();
     messenger.listen({ double: (value) => value * 2 });
 
-    // 型では防げない、古い画面などから届いた形の違う要求をまねる。
+    // 型では防げない、古い画面などから届いた不正な形式のリクエストを再現する。
     const reply: unknown = await fakeBrowser.runtime.sendMessage({
       type: "double",
       request: "2",
@@ -113,11 +113,11 @@ describe("Messenger", () =>
 
     expect(reply).toEqual({
       ok: false,
-      error: "要求の形が違います: double",
+      error: "リクエストの形式が不正です: double",
     });
   });
 
-  it("知らない種類のメッセージには返答しない", async () =>
+  it("扱わない種別のメッセージには応答しない", async () =>
   {
     const messenger = createMessenger();
     messenger.listen({ double: (value) => value * 2 });
@@ -127,13 +127,13 @@ describe("Messenger", () =>
     expect(reply).toBeUndefined();
   });
 
-  it("受けるのをやめたら、返答しない", async () =>
+  it("受信を終了したら、応答しない", async () =>
   {
     const messenger = createMessenger();
     const unlisten = messenger.listen({ double: (value) => value * 2 });
     unlisten();
 
-    // 受け手が1つもないときは、ブラウザーが送る時点で例外にする。
+    // リスナーが1つもないときは、ブラウザが送信の時点で例外にする。
     await expect(messenger.send("double", 1)).rejects.toThrow();
   });
 });

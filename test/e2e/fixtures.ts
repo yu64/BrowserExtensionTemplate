@@ -6,26 +6,26 @@ import type { BrowserContext, Page } from "@playwright/test";
 // MARK: 型定義
 
 /**
- * 試験ごとに用意する道具。
+ * テストごとに準備するフィクスチャ。
  */
 type TestFixtures = {
-  /** 試験の前に拡張を初めの状態に戻し、試験の後に片付ける。どの試験でも自動で動く。 */
+  /** テストの前に拡張機能を初期状態に戻し、テストの後に後処理をする。どのテストでも自動で実行される。 */
   resetExtension: undefined;
 };
 
 /**
- * 試験を流す間、使い回す道具。
+ * テストの実行中に使い回すフィクスチャ。
  */
 type WorkerFixtures = {
   /**
-   * 拡張を読み込んだブラウザー。
-   * 試験ごとに開き直すと、Windows では閉じるたびに数秒かかるので、使い回す。
-   * 試験の間で状態が残らないように、resetExtension が保存した値を消す。
+   * 拡張機能を読み込んだブラウザ。
+   * テストごとに起動し直すと、Windows では終了のたびに数秒かかるので、使い回す。
+   * テストの間で状態が残らないように、resetExtension が保存済みの値を削除する。
    */
   extensionContext: BrowserContext;
-  /** 読み込んだ拡張の ID。拡張のページの URL を作るのに使う。 */
+  /** 読み込んだ拡張機能の ID。拡張機能のページの URL の作成に使用する。 */
   extensionId: string;
-  /** 拡張の API を呼ぶためだけに開いておく、拡張のページ。 */
+  /** 拡張機能の API を呼び出すためだけに開いておく、拡張機能のページ。 */
   controlPage: Page;
 };
 
@@ -33,22 +33,22 @@ type WorkerFixtures = {
 // MARK: 定数
 
 /**
- * 試す拡張の出力先。`npm run e2e` が、先に作っておく。
+ * テストする拡張機能の出力先。`npm run e2e` が事前にビルドする。
  */
 const extensionDir = resolve(import.meta.dirname, "../../.output/chrome-mv3");
 
 // #############################################################################
-// MARK: 試験の道具
+// MARK: フィクスチャ
 
 /**
- * 拡張を読み込んだブラウザーで試験する `test`。
+ * 拡張機能を読み込んだブラウザでテストする `test`。
  *
- * インストールしてある Chrome（channel: "chrome"）を使う。
- * Playwright が配る Chromium は署名がなく、Windows の「スマート アプリ コントロール」が有効だと起動できないため。
+ * インストール済みの Chrome（channel: "chrome"）を使用する。
+ * Playwright が配布する Chromium は署名がなく、Windows の「スマート アプリ コントロール」が有効だと起動できないため。
  * 正式版の Chrome は起動時の `--load-extension` を受け付けないので、
- * DevTools プロトコルの `Extensions.loadUnpacked` で、開いた後に読み込む。
+ * DevTools プロトコルの `Extensions.loadUnpacked` で、起動後に読み込む。
  *
- * Playwright は、引数の分割代入から使う道具を読み取るので、使わない道具も `{}` と書く決まり。
+ * Playwright は、引数の分割代入から使用するフィクスチャを判定するので、使用しないときも `{}` と書く必要がある。
  */
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   extensionContext: [
@@ -56,18 +56,18 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     {
       const context = await chromium.launchPersistentContext("", {
         channel: "chrome",
-        // 拡張の文言を日本語にそろえる。
+        // 拡張機能のメッセージを日本語にする。
         locale: "ja-JP",
-        // Playwright は既定で拡張を止めて起動するので、その指定だけを外す。
+        // Playwright は既定で拡張機能を無効にして起動するので、その指定だけを除外する。
         ignoreDefaultArgs: ["--disable-extensions"],
         args: [
-          // DevTools プロトコルから拡張を読み込めるようにする。
+          // DevTools プロトコルから拡張機能を読み込めるようにする。
           "--enable-unsafe-extension-debugging",
           "--lang=ja",
         ],
       });
       const browser = context.browser();
-      if(browser === null) throw new Error("ブラウザーにつなげません。");
+      if(browser === null) throw new Error("ブラウザに接続できません。");
       const session = await browser.newBrowserCDPSession();
       await session.send("Extensions.loadUnpacked", { path: extensionDir });
       await use(context);
@@ -78,7 +78,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   extensionId: [
     async ({ extensionContext }, use) =>
     {
-      // 拡張の背景（service worker）の URL は chrome-extension://<ID>/background.js の形なので、そこから ID を取る。
+      // バックグラウンド（Service Worker）の URL は chrome-extension://<ID>/background.js の形式なので、そこから ID を取得する。
       const worker = extensionContext.serviceWorkers()[0] ?? await extensionContext.waitForEvent("serviceworker");
       await use(new URL(worker.url()).host);
     },
@@ -87,7 +87,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   controlPage: [
     async ({ extensionContext, extensionId }, use) =>
     {
-      // 最初からあるタブを使う。どのタブも閉じきると、ブラウザーごと終わることがあるため、このタブは残しておく。
+      // 最初から開いているタブを使用する。すべてのタブを閉じると、ブラウザごと終了することがあるため、このタブは残す。
       const page = extensionContext.pages()[0] ?? await extensionContext.newPage();
       await page.goto(`chrome-extension://${extensionId}/manifest.json`);
       await use(page);
@@ -97,10 +97,10 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   resetExtension: [
     async ({ extensionContext, controlPage }, use) =>
     {
-      // 保存した値を消して、まだ何も保存していない状態から始める。
+      // 保存済みの値を削除して、何も保存されていない状態から開始する。
       await controlPage.evaluate("Promise.all([chrome.storage.local.clear(), chrome.storage.sync.clear()])");
       await use(undefined);
-      // 試験で開いたタブと、差し替えたページの中身を片付ける。
+      // テストで開いたタブと、置き換えたページの内容を後処理する。
       for(const page of extensionContext.pages())
       {
         if(page !== controlPage)

@@ -4,12 +4,12 @@ import { badgeTextOf, counterOf, incrementCounter, loadCounter, watchCounter } f
 
 describe("badgeTextOf", () =>
 {
-  it("0 のときは空にする", () =>
+  it("0 のときは空文字にする", () =>
   {
     expect(badgeTextOf(0)).toBe("");
   });
 
-  it("99 まではそのまま出す", () =>
+  it("99 まではそのまま表示する", () =>
   {
     expect(badgeTextOf(1)).toBe("1");
     expect(badgeTextOf(99)).toBe("99");
@@ -29,7 +29,7 @@ describe("counterOf", () =>
     expect(counterOf(42)).toBe(42);
   });
 
-  it("形の違う値は 0 にする", () =>
+  it("不正な形式の値は 0 にする", () =>
   {
     expect(counterOf("5")).toBe(0);
     expect(counterOf(-1)).toBe(0);
@@ -40,25 +40,25 @@ describe("counterOf", () =>
 
 describe("incrementCounter", () =>
 {
-  it("保存がないときは 0 から増やす", async () =>
+  it("保存済みの値がないときは 0 から増やす", async () =>
   {
     expect(await incrementCounter()).toBe(1);
     expect(await loadCounter()).toBe(1);
   });
 
-  it("保存した数から増やす", async () =>
+  it("保存済みの値から増やす", async () =>
   {
     await storage.setItem("local:counter", 41);
     expect(await incrementCounter()).toBe(42);
   });
 
-  it("保存した値が壊れていたら、0 から増やし直す", async () =>
+  it("保存済みの値が破損していたら、0 から増やし直す", async () =>
   {
     await storage.setItem("local:counter", "5");
     expect(await incrementCounter()).toBe(1);
   });
 
-  it("重なって呼んでも、呼んだ回数だけ増える", async () =>
+  it("同時に呼び出しても、呼び出した回数だけ増える", async () =>
   {
     const results = await Promise.all([incrementCounter(), incrementCounter(), incrementCounter()]);
 
@@ -69,12 +69,12 @@ describe("incrementCounter", () =>
 
 describe("watchCounter", () =>
 {
-  it("変わったら、確かめた数で知らせる", async () =>
+  it("変更されたら、検証済みの値で通知する", async () =>
   {
     const onChange = vi.fn();
     const unwatch = watchCounter(onChange);
 
-    await storage.setItem("local:counter", "壊れた値");
+    await storage.setItem("local:counter", "破損した値");
     await incrementCounter();
     unwatch();
 

@@ -5,19 +5,19 @@ import { WxtVitest } from "wxt/testing/vitest-plugin";
 // MARK: 設定
 
 /**
- * Vitest（単体試験）の設定。
- * E2E 試験は Playwright で流す（playwright.config.ts）。
+ * Vitest（単体テスト）の設定。
+ * E2E テストは Playwright で実行する（playwright.config.ts）。
  */
 export default defineConfig({
-  // browser を偽物（fakeBrowser）に差し替える。拡張の API を使う関数も、ブラウザーなしで試せる。
-  // @ で src を指せるようにもなる。
+  // browser をモック（fakeBrowser）に置き換える。拡張機能の API を使用する関数も、ブラウザなしでテストできる。
+  // @ で src を参照できるようにもなる。
   plugins: [WxtVitest()],
   test: {
-    // 単体試験は、試す部品の隣に *.test.ts か *.spec.ts で置く。
-    // 拡張全体のファイルを確かめる試験（文言のファイルなど）は、test の直下に置く。
-    // test/e2e は Playwright の試験なので含めない。
+    // 単体テストは、テストするモジュールの隣に *.test.ts か *.spec.ts で置く。
+    // 拡張機能全体のファイルを確認するテスト（メッセージファイルなど）は、test の直下に置く。
+    // test/e2e は Playwright のテストなので含めない。
     include: ["src/**/*.{test,spec}.ts", "test/*.{test,spec}.ts"],
-    // 試験の間で偽物のブラウザーの状態が残らないように、毎回まっさらにする。
+    // テストの間でモックのブラウザの状態が残らないように、毎回初期化する。
     setupFiles: ["test/setup.ts"],
   },
 });

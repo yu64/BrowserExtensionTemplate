@@ -9,7 +9,7 @@ import { useStoredValue } from "@/util/useStoredValue";
 // MARK: 型定義
 
 /**
- * 保存できたかの知らせ。
+ * 保存の結果の通知。
  */
 type SaveStatus = (
   | { kind: "idle" }
@@ -30,7 +30,7 @@ type ColorInputProps = {
 // MARK: 定数
 
 /**
- * 「保存しました」を出しておく時間（ミリ秒）。
+ * 「保存しました」を表示しておく時間（ミリ秒）。
  */
 const statusDuration = 2000;
 
@@ -39,15 +39,15 @@ const statusDuration = 2000;
 
 /**
  * 設定画面。
- * 入力を変えたらすぐ保存する。保存の押し忘れをなくすため。
- * 保存した設定を読み終えるまでは何も描かない。古い値をもとに入力されて、保存した値を上書きしないようにするため。
+ * 入力を変更したら、すぐに保存する。保存の押し忘れを防ぐため。
+ * 保存済みの設定を取得するまでは、何も描画しない。古い値をもとに入力されて、保存済みの値を上書きしないようにするため。
  */
 export function OptionsPage(): ReactNode
 {
   const settings = useStoredValue(loadSettings, watchSettings);
   const [status, setStatus] = useState<SaveStatus>({ kind: "idle" });
 
-  // 「保存しました」は、しばらくしたら消す。続けて保存したら、そこから数え直す。
+  // 「保存しました」は、一定時間後に非表示にする。連続で保存したら、そこから計測し直す。
   useEffect(() =>
   {
     if(status.kind !== "saved") return undefined;
@@ -64,7 +64,7 @@ export function OptionsPage(): ReactNode
   if(settings === undefined) return undefined;
 
   /**
-   * 設定の一部を保存して、保存できたかを知らせる。
+   * 設定の一部を保存して、結果を通知する。
    */
   function save(patch: Partial<Settings>): void
   {
@@ -75,7 +75,7 @@ export function OptionsPage(): ReactNode
       },
       (reason: unknown) =>
       {
-        // sync の書き込みは、回数や大きさの上限で断られることがある。
+        // sync への保存は、回数やサイズの上限によって失敗することがある。
         console.error(reason);
         setStatus({ kind: "failed" });
       },
@@ -120,7 +120,7 @@ export function OptionsPage(): ReactNode
         </label>
       </form>
 
-      {/* 知らせがないときも高さを取っておく（min-h）。出たり消えたりで、画面が上下に動かないようにするため。 */}
+      {/* 通知がないときも高さを確保する（min-h）。表示・非表示の切り替えで、画面が上下に動かないようにするため。 */}
       <p id="status" className={(status.kind === "failed" ? "min-h-[1.5em] text-danger" : "min-h-[1.5em] text-ink-muted")} aria-live="polite">
         {(status.kind === "saved") && messageOf("optionsSaved")}
         {(status.kind === "failed") && messageOf("optionsSaveFailed")}
@@ -133,15 +133,15 @@ export function OptionsPage(): ReactNode
 // MARK: 内部部品
 
 /**
- * 色の入力欄。選び終えたときだけ知らせる。
- * React の onChange は、色を選ぶ間に何度も呼ばれる。sync の書き込みには回数の上限があるので、
- * ブラウザーの change（選び終えたときに1回だけ届く）を受けて知らせる。
+ * 色の入力欄。色の選択が完了したときだけ通知する。
+ * React の onChange は、色の選択中に何度も呼び出される。sync への保存には回数の上限があるので、
+ * ブラウザの change イベント（選択が完了したときに1回だけ発生する）を受けて通知する。
  */
 function ColorInput({ id, value, onChange }: ColorInputProps): ReactNode
 {
   const ref = useRef<HTMLInputElement>(null);
 
-  // ほかのタブや端末で変わった色を、入力欄に出す。
+  // ほかのタブや端末で変更された色を、入力欄に表示する。
   useEffect(() =>
   {
     if(ref.current !== null)
@@ -153,11 +153,11 @@ function ColorInput({ id, value, onChange }: ColorInputProps): ReactNode
   useEffect(() =>
   {
     if(ref.current === null) return undefined;
-    // null でないと確かめた後の値を、別の名前で持つ。下の関数の中からも、null でない型のまま使えるようにするため。
+    // null でないことを確認した後の値を、別の変数で保持する。下の関数の中からも、null でない型のまま使用するため。
     const input: HTMLInputElement = ref.current;
 
     /**
-     * 選び終えた色を知らせる。
+     * 選択した色を通知する。
      */
     function handleChange(): void
     {

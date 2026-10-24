@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 // MARK: フック
 
 /**
- * 保存した値を読み、変わったら描き直す。
- * 設定や数など、どの保存した値にも使えるように、読み込む関数と見張る関数を受け取る。
- * 渡す関数は、描くたびに作り直さないもの（ファイルの外で定義した関数など）にする。作り直すと、毎回読み直すため。
- * @param load 保存した値を読む関数。
- * @param watch 値が変わるのを見張る関数。見張るのをやめる関数を返す。
- * @returns 読み終えるまでは `undefined`。
+ * 保存済みの値を取得し、変更されたら再描画する。
+ * 設定やカウンターなど、どの保存済みの値にも使えるように、取得する関数と監視する関数を受け取る。
+ * 渡す関数は、描画のたびに作り直さないもの（ファイルの外で定義した関数など）にする。作り直すと、毎回取得し直すため。
+ * @param load 保存済みの値を取得する関数。
+ * @param watch 値の変更を監視する関数。監視を終了する関数を返す。
+ * @returns 取得が完了するまでは `undefined`。
  */
 export function useStoredValue<TValue>(
   load: () => Promise<TValue>,
@@ -20,8 +20,8 @@ export function useStoredValue<TValue>(
 
   useEffect(() =>
   {
-    // 見張りを先に始める。読み込む間に値が変わっても、取りこぼさないようにするため。
-    // 画面を閉じた後に届いた値では描き直さない。
+    // 監視を先に開始する。取得中に値が変更されても、取りこぼさないようにするため。
+    // 画面を閉じた後に届いた値では、再描画しない。
     let active = true;
     const unwatch = watch((next) =>
     {
@@ -32,7 +32,7 @@ export function useStoredValue<TValue>(
     });
     void load().then((loaded) =>
     {
-      // 読み込む間に見張りから新しい値が届いていたら、そちらを残す。
+      // 取得中に監視から新しい値が届いていたら、そちらを優先する。
       if(active)
       {
         setValue((current) => current ?? loaded);

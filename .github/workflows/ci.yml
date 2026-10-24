@@ -1,10 +1,10 @@
-# 検査・試験・出力をひととおり流す。
+# lint・型検査・テスト・ビルドを実行する。
 #
-# 初めは止めてある。非公開のリポジトリでは Actions に使える時間に上限があり、
-# ひな形をコピーしただけで知らないうちに使わないようにするため。
-# - 手で流す: Actions の画面で CI を選び、「Run workflow」を押す。
-# - 自動にする: リポジトリの Settings → Secrets and variables → Actions → Variables で、
-#   CI_ENABLED に true を入れる。main への push とプルリクエストのたびに流れる。
+# 初期状態では無効。非公開のリポジトリでは Actions の利用時間に上限があり、
+# テンプレートをコピーしただけで、意図せず消費しないようにするため。
+# - 手動で実行: Actions の画面で CI を選択し、「Run workflow」を押す。
+# - 自動で実行: リポジトリの Settings → Secrets and variables → Actions → Variables で、
+#   CI_ENABLED に true を設定する。main への push とプルリクエストのたびに実行される。
 name: CI
 
 on:
@@ -13,7 +13,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# 同じブランチで新しく流したら、古いほうは止める。
+# 同じブランチで新しく実行したら、古いほうは中止する。
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -23,35 +23,35 @@ permissions:
 
 jobs:
   check:
-    # 止めてあるときは、ジョブを飛ばす。飛ばしたジョブは、マシンの時間を使わない。
+    # 無効のときは、ジョブをスキップする。スキップしたジョブは、利用時間を消費しない。
     if: vars.CI_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    # 止まったまま時間を使い続けないように、上限を決める。ふだんは数分で終わる。
+    # 処理が止まったまま時間を消費し続けないように、上限を指定する。通常は数分で完了する。
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v5
         with:
-          # .prototools の版とそろえる。
+          # .prototools のバージョンと合わせる。
           node-version: 24
           cache: npm
 
-      # postinstall で wxt prepare が動き、型の定義（.wxt）ができる。
+      # postinstall で wxt prepare が実行され、型定義（.wxt）が生成される。
       - run: npm ci
 
-      - name: lint・型検査・単体試験
+      - name: lint・型検査・単体テスト
         run: npm run check
 
-      # ubuntu-latest には Chrome が入っているので、Playwright のブラウザーは取りに行かずに、それを使う。
-      # Firefox の審査（AMO）で使われる検査を、先に流しておく。
+      # ubuntu-latest には Chrome がインストールされているので、Playwright のブラウザはダウンロードせずに、それを使用する。
+      # Firefox の審査（AMO）で使用される検査を、事前に実行する。
       - name: Firefox 向けの検査（web-ext lint）
         run: npm run lint:firefox
 
-      - name: E2E 試験（Playwright と Chrome）
+      - name: E2E テスト（Playwright と Chrome）
         run: npm run e2e
 
-      # 失敗したときは、原因を追えるように Playwright の報告（写真・操作の記録）を残す。
+      # 失敗したときは、原因を調査できるように Playwright のレポート（スクリーンショット・トレース）を保存する。
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -59,7 +59,7 @@ jobs:
           path: temp/
           retention-days: 7
 
-      - name: ストアに出す zip を作る
+      - name: ストアに提出する zip を作成
         run: |
           npm run zip
           npm run zip:firefox

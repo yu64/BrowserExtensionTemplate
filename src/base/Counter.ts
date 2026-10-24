@@ -6,8 +6,8 @@ import { SerialQueue } from "@/util/SerialQueue";
 // MARK: 定数
 
 /**
- * バッジにそのまま出せる最大の数。
- * バッジには4文字ほどしか入らないため、これを超えたら「99+」にする。
+ * バッジにそのまま表示できる最大の数。
+ * バッジには4文字程度しか入らないため、これを超えたら「99+」にする。
  */
 const badgeMax = 99;
 
@@ -15,14 +15,14 @@ const badgeMax = 99;
 // MARK: 状態
 
 /**
- * 数えた回数。
- * 端末ごとの値でよいので、同期しない local に置く。
- * 読んだ値は、counterOf で形を確かめてから使う。
+ * カウンターの値（ボタンを押した回数）。
+ * 端末ごとの値でよいので、同期しない local に保存する。
+ * 取得した値は、counterOf で形式を検証してから使用する。
  */
 const counterItem = storage.defineItem<number>("local:counter", { fallback: 0 });
 
 /**
- * 数を書き込む順番待ち。続けて押されても、増やした分が消えないようにするため。
+ * カウンターの保存を順番に実行するキュー。連続で押されても、増やした分が失われないようにするため。
  */
 const counterQueue = new SerialQueue();
 
@@ -30,7 +30,7 @@ const counterQueue = new SerialQueue();
 // MARK: 関数
 
 /**
- * 保存した数を読む。
+ * 保存済みのカウンターの値を取得する。
  */
 export async function loadCounter(): Promise<number>
 {
@@ -38,9 +38,9 @@ export async function loadCounter(): Promise<number>
 }
 
 /**
- * 数を1つ増やして保存する。
- * 順番待ちは、それぞれのページや背景の中でしか効かない。書き込みが重ならないように、背景からだけ呼ぶ。
- * @returns 増やした後の数。
+ * カウンターの値を1つ増やして保存する。
+ * キューは、それぞれのページやバックグラウンドの中でしか機能しない。保存が重ならないように、バックグラウンドからだけ呼び出す。
+ * @returns 増やした後の値。
  */
 export function incrementCounter(): Promise<number>
 {
@@ -53,8 +53,8 @@ export function incrementCounter(): Promise<number>
 }
 
 /**
- * 数が変わるのを見張る。
- * @returns 見張るのをやめる関数。
+ * カウンターの値の変更を監視する。
+ * @returns 監視を終了する関数。
  */
 export function watchCounter(onChange: (count: number) => void): () => void
 {
@@ -65,8 +65,8 @@ export function watchCounter(onChange: (count: number) => void): () => void
 }
 
 /**
- * 保存した値から、数を作る。
- * 0 以上の整数でなければ 0 にする。壊れた値のまま足し算すると、文字列がつながるなどして、増やせなくなるため。
+ * 保存済みの値から、カウンターの値を取得する。
+ * 0 以上の整数でなければ 0 にする。破損した値のまま加算すると、文字列が連結されるなどして、増やせなくなるため。
  */
 export function counterOf(stored: unknown): number
 {
@@ -74,8 +74,8 @@ export function counterOf(stored: unknown): number
 }
 
 /**
- * 数から、バッジに出す文字を作る。
- * 0 のときは、バッジを消すために空にする。
+ * カウンターの値から、バッジに表示する文字列を作成する。
+ * 0 のときは、バッジを非表示にするために空文字にする。
  */
 export function badgeTextOf(count: number): string
 {
@@ -91,7 +91,7 @@ export function badgeTextOf(count: number): string
 // MARK: 内部関数
 
 /**
- * 値が、数えた回数として正しい形（0 以上の整数）かを調べる。
+ * 値が、カウンターの値として正しい形式（0 以上の整数）かを判定する。
  */
 function isCount(value: unknown): value is number
 {

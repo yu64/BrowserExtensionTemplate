@@ -27,11 +27,11 @@ type LinkCount = (
 
 /**
  * ポップアップ。
- * 保存した数を読み終えるまでは何も描かない。描いたときには、どのボタンも使える状態にするため。
+ * 保存済みのカウンターの値を取得するまでは、何も描画しない。描画した時点で、どのボタンも使用できる状態にするため。
  */
 export function PopupPage(): ReactNode
 {
-  // 数は背景が変える。変わったら、ここでも描き直す。
+  // カウンターの値はバックグラウンドが変更する。変更されたら、ここでも再描画する。
   const count = useStoredValue(loadCounter, watchCounter);
   const [linkCount, setLinkCount] = useState<LinkCount>({ kind: "none" });
   const [incrementFailed, setIncrementFailed] = useState(false);
@@ -39,7 +39,7 @@ export function PopupPage(): ReactNode
   if(count === undefined) return undefined;
 
   /**
-   * 数を1つ増やすよう、背景に頼む。増えた数は、見張りから届く。
+   * カウンターの値を1つ増やすように、バックグラウンドに依頼する。増えた値は、監視から通知される。
    */
   function increment(): void
   {
@@ -57,7 +57,7 @@ export function PopupPage(): ReactNode
   }
 
   /**
-   * 今のタブのリンクを数える。
+   * 現在のタブのリンクを数える。
    */
   function countLinks(): void
   {
@@ -71,7 +71,7 @@ export function PopupPage(): ReactNode
       },
       (reason: unknown) =>
       {
-        // 内容スクリプトが動かないページ（ブラウザーの設定画面など）では、受け手がいない。
+        // コンテンツスクリプトが動作しないページ（ブラウザの設定画面など）では、リスナーがいない。
         console.warn(reason);
         setLinkCount({ kind: "failed" });
       },
@@ -79,7 +79,7 @@ export function PopupPage(): ReactNode
   }
 
   /**
-   * 設定画面を開く。別のタブで開くので、開いたらポップアップは閉じる。
+   * 設定画面を開く。別のタブで開くので、開いたらポップアップを閉じる。
    */
   function openOptions(): void
   {
@@ -105,7 +105,7 @@ export function PopupPage(): ReactNode
         <Button id="count-links" onClick={countLinks}>
           {messageOf("popupCountLinks")}
         </Button>
-        {/* 結果がまだないときに、余白だけが残らないように隠す（empty:hidden）。 */}
+        {/* 結果がまだないときに、余白だけが残らないように非表示にする（empty:hidden）。 */}
         <p id="link-count" className={(linkCount.kind === "failed" ? "text-danger empty:hidden" : "empty:hidden")} aria-live="polite">
           {(linkCount.kind === "counted") && messageOf("popupLinkCount", String(linkCount.count))}
           {(linkCount.kind === "failed") && messageOf("popupCountLinksFailed")}
@@ -129,7 +129,7 @@ export function PopupPage(): ReactNode
 // MARK: 内部関数
 
 /**
- * 今のタブのリンクの数を、内容スクリプトに数えてもらう。
+ * 現在のタブのリンクの数を、コンテンツスクリプトに数えさせる。
  */
 async function linkCountOfActiveTab(): Promise<number>
 {
@@ -137,6 +137,6 @@ async function linkCountOfActiveTab(): Promise<number>
     active: true,
     currentWindow: true,
   });
-  if(tab?.id === undefined) throw new Error("今のタブが見つかりません。");
+  if(tab?.id === undefined) throw new Error("現在のタブが見つかりません。");
   return messenger.sendToTab(tab.id, "countLinks");
 }

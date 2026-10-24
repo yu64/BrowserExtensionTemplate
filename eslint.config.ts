@@ -8,19 +8,19 @@ import tseslint from "typescript-eslint";
 // MARK: 定数
 
 /**
- * default export を許すファイル。
- * WXT・ESLint・Vitest が、既定の書き出しを求めるファイルだけにする。
+ * default export を許可するファイル。
+ * WXT・ESLint・Vitest などが、default export を求めるファイルだけにする。
  */
 const defaultExportFiles = [
   "*.config.ts",
-  // 入り口そのもの（src/wxt の直下のファイルと、入り口のフォルダーの index.ts）だけ。
-  // 入り口のフォルダーに置いたほかの部品は、名前付きで書き出す。
+  // エントリポイントそのもの（src/wxt の直下のファイルと、エントリポイントのフォルダの index.ts）だけ。
+  // エントリポイントのフォルダに置いたほかのモジュールは、名前付きで export する。
   "src/wxt/*.ts",
   "src/wxt/*/index.ts",
 ];
 
 /**
- * 構文で禁じる書き方。コードの決まり（docs/coding-style.md）のうち、ほかの規則で確かめられないもの。
+ * 構文で禁止する書き方。コーディングルール（docs/coding-style.md）のうち、ほかのルールで検査できないもの。
  */
 const restrictedSyntax = [
   {
@@ -29,12 +29,12 @@ const restrictedSyntax = [
   },
   {
     selector: "ClassDeclaration[superClass], ClassExpression[superClass]",
-    message: "継承しません。組み合わせで作ります。",
+    message: "継承は使用しません。合成（コンポジション）で実装します。",
   },
   {
-    // consistent-type-assertions は `as const` を通すので、ここで止める。
+    // consistent-type-assertions は `as const` を許可するので、ここで禁止する。
     selector: "TSAsExpression > TSTypeReference.typeAnnotation[typeName.name='const']",
-    message: "`as const` も使いません。型の注釈や satisfies で型を決めます。",
+    message: "`as const` も使用しません。型注釈や satisfies で型を指定します。",
   },
   {
     selector: "MethodDefinition[kind='method']",
@@ -66,7 +66,7 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
-  // React のフックの決まり（呼ぶ場所・依存の配列など）を確かめる。
+  // React のフックのルール（呼び出す場所・依存配列など）を検査する。
   reactHooks.configs.flat.recommended,
   stylistic.configs.customize({
     indent: 2,
@@ -94,7 +94,7 @@ export default defineConfig(
         fixStyle: "separate-type-imports",
       }],
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
-      // 依存の配列の書き漏れは誤りにする。わざと外すときは、eslint-disable のコメントに理由を書く決まりのため。
+      // 依存配列の記述漏れはエラーにする。意図的に除外するときは、eslint-disable のコメントに理由を書くルールのため。
       "react-hooks/exhaustive-deps": "error",
       // ===== クラス =====
       "@typescript-eslint/explicit-member-accessibility": ["error", { accessibility: "explicit" }],
@@ -107,7 +107,7 @@ export default defineConfig(
         },
       }],
       // ===== 整形の形 =====
-      // if・for などの後には空白を入れない（`if(`）。関数の呼び出しと同じ見た目にそろえるため。
+      // if・for などの後には空白を入れない（`if(`）。関数呼び出しと同じ見た目に統一するため。
       "@stylistic/keyword-spacing": ["error", {
         before: true,
         after: true,
@@ -120,16 +120,16 @@ export default defineConfig(
         },
       }],
       // catch も if と同じく、後に空白を入れない（`catch(`）。
-      // 共通の設定（customize）が catch の後の空白を求めるので、ここで上書きする。
+      // 共通の設定（customize）が catch の後の空白を要求するので、ここで上書きする。
       "@stylistic/space-before-function-paren": ["error", {
         anonymous: "always",
         named: "never",
         asyncArrow: "always",
         catch: "never",
       }],
-      // 波かっこは、1行で済むきわめて単純な if に限って省ける。中身の種類は no-restricted-syntax で絞る。
+      // 波かっこは、1行で済む極めて単純な if に限って省略できる。本文の種類は no-restricted-syntax で制限する。
       "curly": ["error", "multi-line", "consistent"],
-      // 大きな区切りを空けられるように、空行は2行まで許す。
+      // 大きな区切りを空けられるように、空行は2行まで許可する。
       "@stylistic/no-multiple-empty-lines": ["error", {
         max: 2,
         maxBOF: 0,
@@ -144,9 +144,9 @@ export default defineConfig(
         },
       }],
       "@stylistic/object-property-newline": "error",
-      // 三項演算子と条件型の ? と : は、条件と同じ深さに置く決まりなので、字下げの検査から外す。
+      // 三項演算子と条件型の ? と : は、条件と同じ深さに置くルールなので、インデントの検査から除外する。
       "@stylistic/indent": ["error", 2, { ignoredNodes: ["ConditionalExpression", "TSConditionalType"] }],
-      // 型の中で `,` と `;` を使い分けるため、区切りの検査は行わない。
+      // 型の中で `,` と `;` を使い分けるため、区切り文字の検査は行わない。
       "@stylistic/member-delimiter-style": "off",
     },
   },
@@ -155,7 +155,7 @@ export default defineConfig(
     rules: { "no-restricted-syntax": ["error", ...restrictedSyntax.filter((rule) => rule.selector !== "ExportDefaultDeclaration")] },
   },
   {
-    // 汎用の仕組みは、この拡張のことを知らないままにする。ほかの拡張へそのまま持っていけるようにするため。
+    // 汎用のモジュールは、この拡張機能に依存させない。ほかの拡張機能でもそのまま使用できるようにするため。
     files: ["src/util/**/*.ts"],
     rules: {
       "no-restricted-imports": ["error", {
@@ -167,12 +167,12 @@ export default defineConfig(
     },
   },
   {
-    // 全体の部品は、入り口に頼らない。入り口が部品を使う向きだけにして、依存が輪にならないようにするため。
+    // 共通のモジュールは、エントリポイントに依存させない。依存の向きを一方向にして、循環しないようにするため。
     files: ["src/base/**/*.ts"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [{
-          // 「wxt/...」だけだと WXT のパッケージと区別できないので、@/ か相対の道筋で書いたものだけを止める。
+          // 「wxt/...」だけだと WXT のパッケージと区別できないので、@/ か相対パスで記述したものだけを禁止する。
           group: ["@/wxt", "@/wxt/*", "../wxt", "../wxt/*"],
           message: "src/base から src/wxt は読み込みません。",
         }],
@@ -180,12 +180,12 @@ export default defineConfig(
     },
   },
   {
-    // Playwright の試験の道具は、引数の分割代入から使う道具を読み取る。使わないときも {} と書く決まりなので許す。
+    // Playwright のフィクスチャは、引数の分割代入から使用するものを判定する。使用しないときも {} と書く必要があるので許可する。
     files: ["test/e2e/**/*.ts"],
     rules: { "no-empty-pattern": ["error", { allowObjectPatternsAsParameters: true }] },
   },
   {
-    // 設定ファイルは型の情報なしで読む。tsconfig の対象に入らないものがあるため。
+    // 設定ファイルは型情報なしで検査する。tsconfig の対象に含まれないものがあるため。
     files: ["*.config.ts"],
     extends: [tseslint.configs.disableTypeChecked],
   },
