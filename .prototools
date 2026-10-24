@@ -1,0 +1,3 @@
+# 道具の版を固定する（proto: https://moonrepo.dev/proto）。
+# `proto use` で、ここに書いた版を入れる。CI（.github/workflows/ci.yml）の版とそろえる。
+node = "24"

@@ -1,0 +1,22 @@
+# 依存
+node_modules
+
+# WXT が作るもの
+.wxt
+.output
+stats.html
+stats-*.json
+
+# 環境ごとの設定
+.env.local
+.env.*.local
+web-ext.config.ts
+
+# エディターと OS
+.idea
+.DS_Store
+Thumbs.db
+*.log
+
+# 試験の結果（Playwright の報告・写真・操作の記録など）
+temp
