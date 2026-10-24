@@ -1,7 +1,7 @@
 # ブラウザー拡張のひな形（WXT）
 
 [WXT](https://wxt.dev/) で作るブラウザー拡張のひな形です。
-拡張のページ（ポップアップ・設定画面）は React 19 で、背景と内容スクリプトは素の TypeScript で書いています。
+拡張のページ（ポップアップ・設定画面）は React 19 と Tailwind CSS 4 で、背景と内容スクリプトは素の TypeScript で書いています。
 React は、それを読み込む画面の出力にだけ入ります。背景と内容スクリプトの出力には入りません。
 Chrome・Edge（MV3）と Firefox（MV2）に、同じソースから出力できます。
 対応するのは Chrome 99 以上、Firefox 140 以上（Android 版は 142 以上）です。
@@ -12,6 +12,7 @@ Chrome・Edge（MV3）と Firefox（MV2）に、同じソースから出力で�
 | 種類 | 中身 |
 | --- | --- |
 | 枠組み | WXT 0.21 ／ Vite 8 ／ TypeScript 6 ／ React 19（`@wxt-dev/module-react`） |
+| 見た目 | Tailwind CSS 4（`@tailwindcss/vite`）。色は `src/style/app.css` の `@theme` にまとめ、ブラウザーが暗い表示のときは自動で差し替える |
 | 検査 | ESLint 10（typescript-eslint の strict ＋ React のフックの規則 ＋ 決まりに合わせた規則）／ `tsc --noEmit` |
 | 単体試験 | Vitest 5 ＋ WXT の偽ブラウザー（`fakeBrowser`） |
 | E2E 試験 | Playwright で、インストールしてある Chrome に拡張を読み込んで動かす |
@@ -35,6 +36,7 @@ Chrome・Edge（MV3）と Firefox（MV2）に、同じソースから出力で�
 | ファイル | 役目 |
 | --- | --- |
 | `protocol.ts` | この拡張でやり取りするメッセージの一覧と、その窓口（`messenger`）。 |
+| `Button.tsx` | この拡張のボタン。ポップアップと設定画面で見た目をそろえる。`variant` で種類（`primary`・`link`）を選ぶ。 |
 | `Counter.ts` | 数（`local` に保存）と、バッジの文字の作り方。 |
 | `Settings.ts` | 設定（`sync` に、項目ごとに別のキーで保存）。別のタブや端末で同時に違う項目を変えても、変更が消えない。読んだ値の形を確かめ、欠けや違いは既定値で埋める。 |
 
