@@ -1,18 +1,37 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
+  "workbench.tree.indent": 16,
+  "files.eol": "\n",
+
+  //TypeScript・ESLint
+  "typescript.tsdk": "node_modules/typescript/lib",
   "editor.formatOnSave": false,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
   "eslint.useFlatConfig": true,
-  "files.eol": "\n",
-  // 作られるだけで、手で触らないものを隠す。
+
   "files.exclude": {
+
+    //基本
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+
+    //Node.js
     "**/node_modules": true,
-    ".output": true,
-    ".wxt": true
-  }
+    "**/package-lock.json": true,
+
+    //WXT
+    "**/.wxt": true,
+    "**/.output": true,
+
+    //テスト結果
+    "**/temp": true,
+  },
 }

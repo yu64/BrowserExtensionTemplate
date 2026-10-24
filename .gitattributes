@@ -1,5 +1,5 @@
-# 改行は LF にそろえる。Windows で git が CRLF に変えて、差分や lint が崩れるのを防ぐため。
+# 改行コードを LF に統一する。Windows で git が CRLF に変換して、差分や lint の結果が変わるのを防ぐため。
 * text=auto eol=lf
 
-# 画像は中身を変えない。
+# 画像はバイナリとして扱う。
 *.png binary
