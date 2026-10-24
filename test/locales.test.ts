@@ -9,24 +9,25 @@ import { isRecord } from "@/util/guards";
 const localesDir = join(import.meta.dirname, "../public/_locales");
 
 /**
- * 文言の名前を書いてあるファイル。入り口の HTML と、WXT の設定（manifest の __MSG_ の形）。
+ * 文言の名前を書いてあるファイル。src の中のコードと HTML、WXT の設定（manifest の __MSG_ の形）。
  */
 const sourceFiles = [
-  ...readdirSync(join(import.meta.dirname, "../src/wxt"), {
+  ...readdirSync(join(import.meta.dirname, "../src"), {
     recursive: true,
     encoding: "utf8",
   })
-    .filter((path) => path.endsWith(".html"))
-    .map((path) => join(import.meta.dirname, "../src/wxt", path)),
+    .filter((path) => /\.(html|ts|tsx)$/.test(path))
+    .map((path) => join(import.meta.dirname, "../src", path)),
   join(import.meta.dirname, "../wxt.config.ts"),
 ];
 
 /**
- * 文言の名前を拾う書き方。`data-i18n="名前"`・`data-i18n-lang="名前"`・`__MSG_名前__`。
+ * 文言の名前を拾う書き方。`__MSG_名前__`（HTML・manifest）と `messageOf("名前"`（コード）。
+ * コードの名前は型でも確かめているが、HTML と manifest の名前は型で確かめられないので、ここで確かめる。
  */
 const messageNamePatterns = [
-  /data-i18n(?:-lang)?="([^"]+)"/g,
   /__MSG_(\w+)__/g,
+  /messageOf\("(\w+)"/g,
 ];
 
 /**
@@ -80,7 +81,7 @@ describe("使っている文言の名前", () =>
     expect(used.length).toBeGreaterThan(0);
   });
 
-  // HTML の書き間違いは、画面を開くまで分からないので、ここで先に見つける。
+  // HTML や manifest の書き間違いは、拡張を開くまで分からないので、ここで先に見つける。
   it.each(used)("%s が文言のファイルにある", (name) =>
   {
     expect(known).toContain(name);
