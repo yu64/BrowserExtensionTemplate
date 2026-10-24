@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { browser } from "wxt/browser";
+import { Button } from "@/base/Button";
 import { loadCounter, watchCounter } from "@/base/Counter";
 import { messenger } from "@/base/protocol";
 import { messageOf } from "@/util/i18n";
@@ -89,35 +90,36 @@ export function PopupPage(): ReactNode
   }
 
   return (
-    <main className="popup">
-      <h1>{messageOf("extName")}</h1>
+    <main className="grid w-[280px] gap-4 p-4">
+      <h1 className="text-lg font-bold">{messageOf("extName")}</h1>
 
-      <section className="counter">
+      <section className="grid grid-cols-[1fr_auto] items-center gap-2">
         <span>{messageOf("popupCounterLabel")}</span>
-        <output id="counter">{count}</output>
-        <button id="increment" type="button" onClick={increment}>
+        <output id="counter" className="text-2xl font-bold tabular-nums">{count}</output>
+        <Button id="increment" className="col-span-full" onClick={increment}>
           {messageOf("popupIncrement")}
-        </button>
+        </Button>
       </section>
 
-      <section className="links">
-        <button id="count-links" type="button" onClick={countLinks}>
+      <section className="grid gap-2">
+        <Button id="count-links" onClick={countLinks}>
           {messageOf("popupCountLinks")}
-        </button>
-        <p id="link-count" className={(linkCount.kind === "failed" ? "error" : undefined)} aria-live="polite">
+        </Button>
+        {/* 結果がまだないときに、余白だけが残らないように隠す（empty:hidden）。 */}
+        <p id="link-count" className={(linkCount.kind === "failed" ? "text-danger empty:hidden" : "empty:hidden")} aria-live="polite">
           {(linkCount.kind === "counted") && messageOf("popupLinkCount", String(linkCount.count))}
           {(linkCount.kind === "failed") && messageOf("popupCountLinksFailed")}
         </p>
       </section>
 
-      <p id="error" className="error" role="alert">
+      <p id="error" className="text-danger empty:hidden" role="alert">
         {incrementFailed && messageOf("popupIncrementFailed")}
       </p>
 
       <footer>
-        <button id="open-options" type="button" className="link" onClick={openOptions}>
+        <Button id="open-options" variant="link" onClick={openOptions}>
           {messageOf("popupOpenOptions")}
-        </button>
+        </Button>
       </footer>
     </main>
   );

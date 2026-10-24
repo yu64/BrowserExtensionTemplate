@@ -83,17 +83,18 @@ export function OptionsPage(): ReactNode
   }
 
   return (
-    <main className="options">
-      <h1>{messageOf("optionsTitle")}</h1>
+    <main className="mx-auto grid max-w-[640px] gap-6 px-4 py-8">
+      <h1 className="text-lg font-bold">{messageOf("optionsTitle")}</h1>
 
       <form
         id="settings"
+        className="grid gap-3"
         onSubmit={(event) =>
         {
           event.preventDefault();
         }}
       >
-        <label className="field">
+        <label className="flex cursor-pointer items-center gap-2">
           <input
             id="links-highlighted"
             name="linksHighlighted"
@@ -106,7 +107,7 @@ export function OptionsPage(): ReactNode
           />
           <span>{messageOf("optionsLinksHighlighted")}</span>
         </label>
-        <label className="field">
+        <label className="flex cursor-pointer items-center gap-2">
           <ColorInput
             id="highlight-color"
             value={settings.highlightColor}
@@ -119,7 +120,8 @@ export function OptionsPage(): ReactNode
         </label>
       </form>
 
-      <p id="status" className={(status.kind === "failed" ? "status error" : "status")} aria-live="polite">
+      {/* 知らせがないときも高さを取っておく（min-h）。出たり消えたりで、画面が上下に動かないようにするため。 */}
+      <p id="status" className={(status.kind === "failed" ? "min-h-[1.5em] text-danger" : "min-h-[1.5em] text-ink-muted")} aria-live="polite">
         {(status.kind === "saved") && messageOf("optionsSaved")}
         {(status.kind === "failed") && messageOf("optionsSaveFailed")}
       </p>

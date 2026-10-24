@@ -1,0 +1,53 @@
+/*
+ * 拡張のページ（ポップアップ・設定画面）の見た目のもと。各画面の main.tsx が読み込む。
+ * 見た目は、部品の JSX に Tailwind のクラスで書く。ここには、全体で共通の色と土台だけを置く。
+ * 内容スクリプトでは読み込まない。Tailwind の土台の CSS が、ほかのサイトのページの見た目を崩すため。
+ */
+@import "tailwindcss";
+
+/*
+ * この拡張の色。`text-ink`・`bg-paper`・`border-line` のようにクラスで使う。
+ * 色を変えるときは、ここと下の暗い表示の両方を変える。
+ */
+@theme {
+  --color-ink: #1f2328;
+  --color-ink-muted: #59636e;
+  --color-paper: #ffffff;
+  --color-line: #d1d9e0;
+  --color-accent: #0969da;
+  --color-on-accent: #ffffff;
+  --color-danger: #d1242f;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  /*
+   * ブラウザーが暗い表示のときは、色だけを差し替える。
+   * 部品ごとに `dark:` を書かずに済むように、色の変数そのものを変える。
+   */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-ink: #f0f6fc;
+      --color-ink-muted: #9198a1;
+      --color-paper: #0d1117;
+      --color-line: #3d444d;
+      --color-accent: #4493f8;
+      --color-on-accent: #0d1117;
+      --color-danger: #f85149;
+    }
+  }
+
+  body {
+    @apply bg-paper font-sans text-sm/normal text-ink;
+  }
+
+  /* キーボードで動かしたときに、今どこにいるかが分かるようにする。 */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}

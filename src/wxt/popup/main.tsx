@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "@/style/app.css";
 import { messageOf } from "@/util/i18n";
 import { PopupPage } from "./PopupPage";
 
