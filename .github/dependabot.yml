@@ -1,0 +1,19 @@
+# 依存の更新を、月に1回まとめて知らせる（プルリクエストを作る）。
+# 種類ごとに1つのプルリクエストにまとめて、数が増えすぎないようにする。
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]

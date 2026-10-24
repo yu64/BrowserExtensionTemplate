@@ -1,0 +1,71 @@
+# 検査・試験・出力をひととおり流す。
+#
+# 初めは止めてある。非公開のリポジトリでは Actions に使える時間に上限があり、
+# ひな形をコピーしただけで知らないうちに使わないようにするため。
+# - 手で流す: Actions の画面で CI を選び、「Run workflow」を押す。
+# - 自動にする: リポジトリの Settings → Secrets and variables → Actions → Variables で、
+#   CI_ENABLED に true を入れる。main への push とプルリクエストのたびに流れる。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 同じブランチで新しく流したら、古いほうは止める。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    # 止めてあるときは、ジョブを飛ばす。飛ばしたジョブは、マシンの時間を使わない。
+    if: vars.CI_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    # 止まったまま時間を使い続けないように、上限を決める。ふだんは数分で終わる。
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # .prototools の版とそろえる。
+          node-version: 24
+          cache: npm
+
+      # postinstall で wxt prepare が動き、型の定義（.wxt）ができる。
+      - run: npm ci
+
+      - name: lint・型検査・単体試験
+        run: npm run check
+
+      # ubuntu-latest には Chrome が入っているので、Playwright のブラウザーは取りに行かずに、それを使う。
+      # Firefox の審査（AMO）で使われる検査を、先に流しておく。
+      - name: Firefox 向けの検査（web-ext lint）
+        run: npm run lint:firefox
+
+      - name: E2E 試験（Playwright と Chrome）
+        run: npm run e2e
+
+      # 失敗したときは、原因を追えるように Playwright の報告（写真・操作の記録）を残す。
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: temp/
+          retention-days: 7
+
+      - name: ストアに出す zip を作る
+        run: |
+          npm run zip
+          npm run zip:firefox
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-zips
+          path: .output/*.zip
+          if-no-files-found: error
