@@ -47,18 +47,18 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| `protocol.ts` | この拡張機能で送受信するメッセージの一覧（`ProtocolMap`）と、送受信する関数（`sendMessage`・`onMessage`）。 |
+| `protocol.ts` | この拡張機能で送受信するメッセージの一覧（`ProtocolMap`）と、送受信する関数（`sendMessage`・`onMessage`）。`import * as protocol` で読み込む。 |
 | `Button.tsx` | この拡張機能のボタン。`variant` で種類（`primary`・`link`）を指定する。 |
-| `Counter.ts` | カウンター（`local` に保存）と、バッジに表示する文字列の作成。 |
-| `Settings.ts` | 設定（`sync` に、項目ごとに別のキーで保存）。別のタブや端末で同時に別の項目を変更しても、変更が失われない。取得した値は Zod のスキーマで検証し、欠けている項目や不正な項目は初期値で補う。 |
+| `CounterStore.ts` | カウンター（`local` に保存）の保存先のクラスと、バッジに表示する文字列の作成。 |
+| `SettingsStore.ts` | 設定（`sync` に、項目ごとに別のキーで保存）の保存先のクラス。別のタブや端末で同時に別の項目を変更しても、変更が失われない。取得した値は Zod のスキーマで検証し、欠けている項目や不正な項目は初期値で補う。 |
 
 `src/util/` のモジュール。
 
 | ファイル | 内容 |
 | --- | --- |
 | `SerialQueue.ts` | 非同期の処理を1つずつ順番に実行する。「取得してから保存する」処理が重なって、変更が失われるのを防ぐ。 |
-| `i18n.ts` | メッセージを取得する `getMessage`。メッセージの名前の型は、WXT がメッセージファイルから生成する。 |
-| `useStoredValue.ts` | 保存済みの値を取得し、変更されたら再描画する React のフック。取得する関数と監視する関数を渡して使用する。 |
+| `i18n.ts` | メッセージを取得する `getMessage`。`import * as i18n` で読み込む。メッセージの名前の型は、WXT がメッセージファイルから生成する。 |
+| `useStoredValue.ts` | 保存済みの値を取得し、変更されたら再描画する React のフック。`useStoredValue(store.get, store.watch)` のように使用する。 |
 
 ## 環境
 
@@ -127,9 +127,9 @@ E2E テストの補足。
 - **エントリポイント** … `src/wxt/` にファイルを置く。命名規則は [WXT のドキュメント](https://wxt.dev/guide/essentials/entrypoints.html) を参照。
 - **権限** … `wxt.config.ts` の `manifest.permissions` に追加する。
 - **新しいブラウザの機能** … その機能に対応したバージョンに合わせて、`wxt.config.ts` の `minimum_chrome_version`・`strict_min_version` を上げる。
-- **メッセージの種別** … `src/base/protocol.ts` の `ProtocolMap` に「種別: (リクエスト) => レスポンス」の形で追加する。受信側で `onMessage(種別, ハンドラー)`、送信側で `sendMessage(種別, リクエスト)` を呼び出す（コンテンツスクリプトへ送信するときは、第3引数にタブ ID を指定する）。
+- **メッセージの種別** … `src/base/protocol.ts` の `ProtocolMap` に「種別: (リクエスト) => レスポンス」の形で追加する。受信側で `protocol.onMessage(種別, ハンドラー)`、送信側で `protocol.sendMessage(種別, リクエスト)` を呼び出す（コンテンツスクリプトへ送信するときは、第3引数にタブ ID を指定する）。
 - **保存する値** … `storage.defineItem` で定義する。形式を変更するときは `version` を上げ、`migrations` に変換処理を書く。
-  複数の値をまとめて保持するときは、1つのオブジェクトにせず、`Settings.ts` のように項目ごとに分けて保存する。
+  複数の値をまとめて保持するときは、1つのオブジェクトにせず、`SettingsStore.ts` のように項目ごとに分けて保存する。保存先はクラスにし、インスタンスは使用するエントリポイントで作成する（React の画面には props で渡す）。
   「取得してから保存する」処理（カウンターを増やすなど）は、`SerialQueue` で順番に実行する。キューが機能するのは同じページの中だけなので、保存する場所は1か所（バックグラウンドなど）にまとめる。
-- **画面のメッセージ** … `public/_locales/ja/messages.json` と `en/messages.json` の両方に追加する。`npm run dev` か `npx wxt prepare` を実行すると、`getMessage` で型が有効になる。
+- **画面のメッセージ** … `public/_locales/ja/messages.json` と `en/messages.json` の両方に追加する。`npm run dev` か `npx wxt prepare` を実行すると、`i18n.getMessage` で型が有効になる。
   言語のファイルどうしで名前がそろっているかと、HTML や manifest で使用する名前がファイルにあるかは、単体テスト（`test/locales.test.ts`）が確認する。
