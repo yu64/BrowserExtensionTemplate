@@ -11,6 +11,8 @@ WXT を使用したブラウザ拡張機能のテンプレート
 - Vitest
 - Playwright
 - ESLint
+- @webext-core/messaging
+- Zod
 
 ## 起動
 

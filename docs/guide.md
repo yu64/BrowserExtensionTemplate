@@ -19,6 +19,8 @@
 | E2E テスト | Playwright で、インストール済みの Chrome に拡張機能を読み込んで実行する |
 | 開発 | `web-ext` で開発用のブラウザを起動し、変更をすぐに反映する |
 | CI | GitHub Actions で、lint・型検査・単体テスト・Firefox 向けの検査・E2E テスト・zip の作成を実行する（初期状態では無効） |
+| メッセージの送受信 | [@webext-core/messaging](https://webext-core.aklinker1.io/messaging/installation)（WXT の作者によるライブラリ） |
+| 値の検証 | [Zod](https://zod.dev/)（`zod/mini`。コンテンツスクリプトの出力を小さくするため） |
 | 依存関係の更新 | Dependabot が、月に1回まとめてプルリクエストを作成する |
 
 ## サンプル
@@ -45,20 +47,18 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| `protocol.ts` | この拡張機能で送受信するメッセージの一覧と、送受信用のインスタンス（`messenger`）。 |
+| `protocol.ts` | この拡張機能で送受信するメッセージの一覧（`ProtocolMap`）と、送受信する関数（`sendMessage`・`onMessage`）。 |
 | `Button.tsx` | この拡張機能のボタン。`variant` で種類（`primary`・`link`）を指定する。 |
 | `Counter.ts` | カウンター（`local` に保存）と、バッジに表示する文字列の作成。 |
-| `Settings.ts` | 設定（`sync` に、項目ごとに別のキーで保存）。別のタブや端末で同時に別の項目を変更しても、変更が失われない。取得した値は形式を検証し、欠けている項目や不正な項目は初期値で補う。 |
+| `Settings.ts` | 設定（`sync` に、項目ごとに別のキーで保存）。別のタブや端末で同時に別の項目を変更しても、変更が失われない。取得した値は Zod のスキーマで検証し、欠けている項目や不正な項目は初期値で補う。 |
 
 `src/util/` のモジュール。
 
 | ファイル | 内容 |
 | --- | --- |
-| `Messenger.ts` | 型付きのメッセージの送受信。リクエストとレスポンスの形式を、受信時に検証する。 |
 | `SerialQueue.ts` | 非同期の処理を1つずつ順番に実行する。「取得してから保存する」処理が重なって、変更が失われるのを防ぐ。 |
 | `i18n.ts` | メッセージを取得する `getMessage`。メッセージの名前の型は、WXT がメッセージファイルから生成する。 |
 | `useStoredValue.ts` | 保存済みの値を取得し、変更されたら再描画する React のフック。取得する関数と監視する関数を渡して使用する。 |
-| `guards.ts` | 外部から受け取った値の型を判定する関数。 |
 
 ## 環境
 
@@ -127,7 +127,7 @@ E2E テストの補足。
 - **エントリポイント** … `src/wxt/` にファイルを置く。命名規則は [WXT のドキュメント](https://wxt.dev/guide/essentials/entrypoints.html) を参照。
 - **権限** … `wxt.config.ts` の `manifest.permissions` に追加する。
 - **新しいブラウザの機能** … その機能に対応したバージョンに合わせて、`wxt.config.ts` の `minimum_chrome_version`・`strict_min_version` を上げる。
-- **メッセージの種別** … `src/base/protocol.ts` の `Protocol` に型を、`messenger` に検証する関数を追加する。受信側で `messenger.addListener({ 種別: 関数 })` を呼び出す。
+- **メッセージの種別** … `src/base/protocol.ts` の `ProtocolMap` に「種別: (リクエスト) => レスポンス」の形で追加する。受信側で `onMessage(種別, ハンドラー)`、送信側で `sendMessage(種別, リクエスト)` を呼び出す（コンテンツスクリプトへ送信するときは、第3引数にタブ ID を指定する）。
 - **保存する値** … `storage.defineItem` で定義する。形式を変更するときは `version` を上げ、`migrations` に変換処理を書く。
   複数の値をまとめて保持するときは、1つのオブジェクトにせず、`Settings.ts` のように項目ごとに分けて保存する。
   「取得してから保存する」処理（カウンターを増やすなど）は、`SerialQueue` で順番に実行する。キューが機能するのは同じページの中だけなので、保存する場所は1か所（バックグラウンドなど）にまとめる。
