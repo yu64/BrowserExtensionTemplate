@@ -1,5 +1,5 @@
 import { storage } from "wxt/utils/storage";
-import { getValidValue } from "@/util/guards";
+import { z } from "zod/mini";
 import { SerialQueue } from "@/util/SerialQueue";
 
 // #############################################################################
@@ -10,6 +10,11 @@ import { SerialQueue } from "@/util/SerialQueue";
  * バッジには4文字程度しか入らないため、これを超えたら「99+」にする。
  */
 const badgeMax = 99;
+
+/**
+ * カウンターの値の形式。0 以上の整数でなければ 0 にする。
+ */
+const countSchema = z.catch(z.int().check(z.gte(0)), 0);
 
 // #############################################################################
 // MARK: 状態
@@ -70,7 +75,7 @@ export function watchCounter(onChange: (count: number) => void): () => void
  */
 export function toCount(stored: unknown): number
 {
-  return getValidValue(stored, isCount, 0);
+  return countSchema.parse(stored);
 }
 
 /**
@@ -85,15 +90,4 @@ export function toBadgeText(count: number): string
     ? `${String(badgeMax)}+`
     : String(count)
   );
-}
-
-// #############################################################################
-// MARK: 内部関数
-
-/**
- * 値が、カウンターの値として正しい形式（0 以上の整数）かを判定する。
- */
-function isCount(value: unknown): value is number
-{
-  return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }

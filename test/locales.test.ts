@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { isRecord } from "@/util/guards";
+import { z } from "zod/mini";
 
 /**
  * メッセージファイルのフォルダ。
@@ -31,25 +31,19 @@ const messageNamePatterns = [
 ];
 
 /**
+ * メッセージファイルの形式。プレースホルダー以外の項目（message・description）は確認しない。
+ */
+const messagesSchema = z.record(z.string(), z.looseObject({ placeholders: z.optional(z.record(z.string(), z.unknown())) }));
+
+/**
  * 言語ごとのメッセージファイルを読み込む。
  * @returns メッセージの名前ごとの、プレースホルダー（placeholders）の名前の一覧。
  */
 function getPlaceholders(locale: string): Record<string, string[]>
 {
-  const json: unknown = JSON.parse(readFileSync(join(localesDir, locale, "messages.json"), "utf8"));
-  if(!isRecord(json))
-  {
-    throw new Error(`メッセージファイルの形式が不正です: ${locale}`);
-  }
-  return Object.fromEntries(Object.entries(json).map(([key, entry]) =>
-  {
-    const placeholders = (
-      (isRecord(entry) && isRecord(entry.placeholders))
-      ? Object.keys(entry.placeholders).sort()
-      : []
-    );
-    return [key, placeholders];
-  }));
+  // 形式が不正なときは、zod がどこが不正かを示すエラーを投げる。
+  const messages = messagesSchema.parse(JSON.parse(readFileSync(join(localesDir, locale, "messages.json"), "utf8")));
+  return Object.fromEntries(Object.entries(messages).map(([key, entry]) => [key, Object.keys(entry.placeholders ?? {}).sort()]));
 }
 
 describe("メッセージファイル", () =>

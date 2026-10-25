@@ -1,22 +1,15 @@
 import { storage } from "wxt/utils/storage";
 import type { WxtStorageItem } from "wxt/utils/storage";
-import { getValidValue, isBoolean, isRecord } from "@/util/guards";
-import type { Guard } from "@/util/guards";
+import { z } from "zod/mini";
 import { SerialQueue } from "@/util/SerialQueue";
 
 // #############################################################################
 // MARK: 型定義
 
 /**
- * ユーザが設定画面で変更する値。
- * 項目を追加するときは、ここと、下の defaultSettings・settingItems・settingGuards に追加する。
+ * ユーザが設定画面で変更する値。形式は settingFieldsSchema で定義する。
  */
-export type Settings = {
-  /** ページのリンクを、枠で囲んで表示するか。 */
-  isLinkHighlighted: boolean;
-  /** 枠の色。`#rrggbb` の形式で保持する。色の入力欄が返す形式に合わせるため。 */
-  highlightColor: string;
-};
+export type Settings = z.infer<typeof settingFieldsSchema>;
 
 /**
  * 設定の項目ごとの保存先。
@@ -29,20 +22,27 @@ type SettingItems = {
 // MARK: 定数
 
 /**
- * 何も保存されていないときの設定（初期値）。
+ * 設定の項目ごとの形式と初期値。
+ * catch の値は、項目が欠けているときや、形式が不正なときに使用する初期値。
+ * 項目を追加するときは、ここと、下の settingItems・settingKeys に追加する。
  */
-export const defaultSettings: Settings = {
-  isLinkHighlighted: false,
-  highlightColor: "#e8590c",
-};
+const settingFieldsSchema = z.object({
+  /** ページのリンクを、枠で囲んで表示するか。 */
+  isLinkHighlighted: z.catch(z.boolean(), false),
+  /** 枠の色。`#rrggbb` の形式で保持する。色の入力欄が返す形式に合わせるため。 */
+  highlightColor: z.catch(z.string().check(z.regex(/^#[0-9a-f]{6}$/i)), "#e8590c"),
+});
 
 /**
- * 設定の項目ごとの、保存済みの値の形式を検証する関数。
+ * 何も保存されていないときの設定（初期値）。
  */
-const settingGuards: { [TKey in keyof Settings]: Guard<Settings[TKey]> } = {
-  isLinkHighlighted: isBoolean,
-  highlightColor: isHexColor,
-};
+export const defaultSettings: Settings = settingFieldsSchema.parse({});
+
+/**
+ * 保存済みの値を、全項目がそろった設定に変換するスキーマ。
+ * 値がオブジェクトでないときは、すべての項目を初期値にする。
+ */
+const settingsSchema = z.catch(settingFieldsSchema, defaultSettings);
 
 // #############################################################################
 // MARK: 状態
@@ -119,15 +119,7 @@ export function watchSettings(onChange: (settings: Settings) => void): () => voi
  */
 export function toSettings(stored: unknown): Settings
 {
-  const record = (
-    (isRecord(stored))
-    ? stored
-    : {}
-  );
-  return {
-    isLinkHighlighted: getValidValue(record.isLinkHighlighted, settingGuards.isLinkHighlighted, defaultSettings.isLinkHighlighted),
-    highlightColor: getValidValue(record.highlightColor, settingGuards.highlightColor, defaultSettings.highlightColor),
-  };
+  return settingsSchema.parse(stored);
 }
 
 // #############################################################################
@@ -140,12 +132,4 @@ async function setSetting<TKey extends keyof Settings>(key: TKey, value: Setting
 {
   if(value === undefined) return;
   await settingItems[key].setValue(value);
-}
-
-/**
- * 値が `#rrggbb` の形式の色かを判定する。
- */
-function isHexColor(value: unknown): value is string
-{
-  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
 }
