@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "wxt";
 
@@ -57,7 +58,9 @@ export default defineConfig({
     startUrls: ["https://example.com/"],
     // 開発用の Chrome のプロファイルを保持する。ログインや設定を、起動のたびにやり直さずに済むため。
     // .wxt は git の管理対象外なので、開発者ごとのプロファイルになる。
-    chromiumArgs: ["--user-data-dir=./.wxt/chrome-data"],
+    // chromiumArgs の --user-data-dir は、web-ext が指定する一時的なプロファイルが優先されて効かないので、web-ext の設定で指定する。
+    chromiumProfile: resolve(import.meta.dirname, ".wxt/chrome-data"),
+    keepProfileChanges: true,
     // 開発者ごとに変更したいときは、web-ext.config.ts を作成して上書きする（git の管理対象外）。
   },
 });
