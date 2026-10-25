@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "wxt";
 
@@ -22,7 +22,19 @@ export default defineConfig({
   // React を import しないエントリポイント（バックグラウンド・コンテンツスクリプト）の出力には、React は含まれない。
   modules: ["@wxt-dev/module-react"],
   // 拡張機能のページのスタイルは Tailwind CSS で指定する（src/style/app.css）。
-  vite: () => ({ plugins: [tailwindcss()] }),
+  vite: () => ({
+    plugins: [tailwindcss()],
+    build: {
+      rollupOptions: {
+        output: {
+          // ソースマップの元ファイルのパスを、絶対パスにする。
+          // 相対パスのままだと、デバッガーが chrome-extension://<ID>/ を基準に解決して、ワークスペースのファイルと対応付けられないため。
+          // ソースマップを出力するのは開発時だけなので、ストアに提出する zip には含まれない。
+          sourcemapPathTransform: (relativePath, sourcemapPath) => resolve(dirname(sourcemapPath), relativePath),
+        },
+      },
+    },
+  }),
   manifest: ({ browser }) => ({
     // 名前と説明は、言語ごとのメッセージファイル（public/_locales）から取得する。
     name: "__MSG_extName__",
@@ -61,6 +73,9 @@ export default defineConfig({
     // chromiumArgs の --user-data-dir は、web-ext が指定する一時的なプロファイルが優先されて効かないので、web-ext の設定で指定する。
     chromiumProfile: resolve(import.meta.dirname, ".wxt/chrome-data"),
     keepProfileChanges: true,
+    // VS Code のデバッガーを接続するための口を開ける（.vscode/launch.json の「デバッガーを接続（Chrome）」）。
+    // 開発中は、同じ PC の別のプログラムからも、この開発用の Chrome を操作できる状態になる。
+    chromiumArgs: ["--remote-debugging-port=9222"],
     // 開発者ごとに変更したいときは、web-ext.config.ts を作成して上書きする（git の管理対象外）。
   },
 });

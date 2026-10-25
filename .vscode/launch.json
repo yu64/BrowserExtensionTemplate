@@ -17,5 +17,36 @@
       "command": "npm run dev:firefox",
       "cwd": "${workspaceFolder}",
     },
+
+    //起動済みの開発用の Chrome に、デバッガーを接続する（wxt.config.ts で開いているポート 9222）。
+    {
+      "name": "デバッガーを接続（Chrome）",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      //開発用の Chrome の起動を待つ時間（ミリ秒）。
+      "timeout": 60000,
+      "webRoot": "${workspaceFolder}",
+      //ポップアップ・設定画面のスクリプトは、開発サーバから読み込まれる。
+      "pathMapping": {
+        "http://localhost:3000/": "${workspaceFolder}/",
+      },
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**",
+      ],
+    },
+  ],
+  "compounds": [
+
+    //開発用の Chrome を起動して、デバッガーを接続する。
+    {
+      "name": "開発とデバッグ（Chrome）",
+      "configurations": [
+        "開発（Chrome）",
+        "デバッガーを接続（Chrome）",
+      ],
+      "stopAll": true,
+    },
   ],
 }
