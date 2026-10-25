@@ -68,6 +68,7 @@ Node.js は 22.13 以上の 22・24、または 26 以上が必要（ESLint・Vi
 ## 開発
 
 `npm run dev` で開発用の Chrome が起動し、`https://example.com/` を表示する。
+VS Code では、F5（実行とデバッグの「開発（Chrome）」）でも起動できる。停止は Shift+F5。Firefox は「開発（Firefox）」を選択する。
 ソースを保存すると、拡張機能が自動で再読み込みされる。
 開発用の Chrome のプロファイルは `.wxt/chrome-data` に保持されるので、ログインや設定は次の起動時も残る。
 ただし `.wxt` ごと削除する操作（`npx wxt clean` や手動での削除）をすると、プロファイルも削除される。

@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+
+    //開発用のブラウザを起動する（npm run dev）。停止は Shift+F5。
+    {
+      "name": "開発（Chrome）",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}",
+    },
+    {
+      "name": "開発（Firefox）",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev:firefox",
+      "cwd": "${workspaceFolder}",
+    },
+  ],
+}
