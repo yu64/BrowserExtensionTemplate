@@ -1,40 +1,27 @@
-import { isNumber, isUndefined } from "@/util/guards";
-import { Messenger } from "@/util/Messenger";
+import { defineExtensionMessaging } from "@webext-core/messaging";
 
 // #############################################################################
 // MARK: 型定義
 
 /**
  * この拡張機能で送受信するメッセージの一覧。
- * 種別を追加するときは、ここと、下の `messenger` の検証する関数を追加する。
+ * 種別ごとに「(リクエスト) => レスポンス」の形で指定する。リクエストがない種別は、引数を書かない。
  */
-export type Protocol = {
+export type ProtocolMap = {
   /** カウンターの値を1つ増やす。バックグラウンドが担当する。レスポンスは増やした後の値。 */
-  incrementCounter: {
-    request: undefined;
-    response: number;
-  };
+  incrementCounter: () => number;
   /** 開いているページのリンクを数える。コンテンツスクリプトが担当する。 */
-  countLinks: {
-    request: undefined;
-    response: number;
-  };
+  countLinks: () => number;
 };
 
 // #############################################################################
 // MARK: 状態
 
 /**
- * この拡張機能のメッセージを送受信するインスタンス。
- * バックグラウンド・ポップアップ・コンテンツスクリプトのどこからでも、これを使用する。
+ * この拡張機能のメッセージを送受信する関数。
+ * - `sendMessage(種別, リクエスト)`: バックグラウンドと拡張機能のページへ送信する。
+ * - `sendMessage(種別, リクエスト, タブID)`: タブのコンテンツスクリプトへ送信する。
+ * - `onMessage(種別, ハンドラー)`: 受信して応答する。受信を終了する関数を返す。
+ * 受信側で発生した例外は、送信側の sendMessage の例外になる。
  */
-export const messenger = new Messenger<Protocol>({
-  incrementCounter: {
-    request: isUndefined,
-    response: isNumber,
-  },
-  countLinks: {
-    request: isUndefined,
-    response: isNumber,
-  },
-});
+export const { sendMessage, onMessage } = defineExtensionMessaging<ProtocolMap>();

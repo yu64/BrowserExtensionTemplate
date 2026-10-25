@@ -1,7 +1,7 @@
 import { browser } from "wxt/browser";
 import { defineBackground } from "wxt/utils/define-background";
 import { toBadgeText, incrementCounter, getCounter, watchCounter } from "@/base/Counter";
-import { messenger } from "@/base/protocol";
+import { onMessage } from "@/base/protocol";
 
 // #############################################################################
 // MARK: 内部関数
@@ -12,7 +12,7 @@ import { messenger } from "@/base/protocol";
  */
 function main(): void
 {
-  messenger.addListener({ incrementCounter });
+  onMessage("incrementCounter", () => incrementCounter());
 
   // カウンターの値が変更されたら、変更元に関係なくバッジに表示する。
   watchCounter(updateBadge);

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { browser } from "wxt/browser";
 import { Button } from "@/base/Button";
 import { getCounter, watchCounter } from "@/base/Counter";
-import { messenger } from "@/base/protocol";
+import { sendMessage } from "@/base/protocol";
 import { getMessage } from "@/util/i18n";
 import { useStoredValue } from "@/util/useStoredValue";
 
@@ -43,7 +43,7 @@ export function PopupPage(): ReactNode
    */
   function increment(): void
   {
-    messenger.send("incrementCounter").then(
+    sendMessage("incrementCounter").then(
       () =>
       {
         setIncrementFailed(false);
@@ -138,5 +138,5 @@ async function countLinksInActiveTab(): Promise<number>
     currentWindow: true,
   });
   if(tab?.id === undefined) throw new Error("現在のタブが見つかりません。");
-  return messenger.sendToTab(tab.id, "countLinks");
+  return sendMessage("countLinks", undefined, tab.id);
 }

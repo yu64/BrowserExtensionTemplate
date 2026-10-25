@@ -70,22 +70,20 @@ test("ポップアップでカウンターを増やすと、バックグラウ�
   await expect.poll(() => popup.evaluate("chrome.action.getBadgeText({})")).toBe("2");
 });
 
-test("コンテンツスクリプトが、ページのリンクを数える", async ({ extensionContext, extensionId }) =>
+test("ポップアップのボタンで、現在のタブのリンクを数える", async ({ extensionContext, extensionId }) =>
 {
-  await openTestPage(extensionContext);
+  const page = await openTestPage(extensionContext);
   const popup = await openExtensionPage(extensionContext, extensionId, "popup.html");
+  const linkCount = popup.locator("#link-count");
 
-  // ポップアップのボタンは「現在のタブ」に送信するが、テストではポップアップ自身が現在のタブになる。
-  // そこで、すべてのタブに同じメッセージを送信し、応答したものを探す。tabs の権限がないので、URL ではタブを選択できない。
-  // コンテンツスクリプトは、ページの読み込みの少し後に動作を開始するので、応答するまで待つ。
-  await expect.poll(() => popup.evaluate(`
-    chrome.tabs.query({}).then((tabs) => Promise.all(tabs.map((tab) => (
-      chrome.tabs.sendMessage(tab.id, { type: "countLinks" }).catch(() => undefined)
-    )))).then((responses) => responses.find((response) => response?.ok))
-  `)).toEqual({
-    ok: true,
-    value: 3,
-  });
+  // テストではポップアップもタブとして開くので、テスト用のページを前面に出して「現在のタブ」にする。
+  await page.bringToFront();
+  // コンテンツスクリプトは、ページの読み込みの少し後に動作を開始するので、数えられるまで押し直す。
+  await expect(async () =>
+  {
+    await popup.locator("#count-links").click();
+    await expect(linkCount).toHaveText("リンクは 3 個あります。", { timeout: 1000 });
+  }).toPass();
 });
 
 test("設定でリンクを枠で囲むと、開いているページに枠が表示される", async ({ extensionContext, extensionId }) =>
