@@ -18,10 +18,12 @@ export class SerialQueue
   public run = <TResult>(task: () => Promise<TResult>): Promise<TResult> =>
   {
     const result = this.#tail.then(task);
+
     this.#tail = result.then(
       () => undefined,
       () => undefined,
     );
+
     return result;
   };
 }

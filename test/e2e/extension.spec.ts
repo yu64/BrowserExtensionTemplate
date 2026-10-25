@@ -30,6 +30,7 @@ async function openTestPage(context: BrowserContext): Promise<Page>
     contentType: "text/html; charset=utf-8",
     body: testPageHtml,
   }));
+
   const page = await context.newPage();
   await page.goto(testPageUrl);
   return page;
@@ -78,6 +79,7 @@ test("ポップアップのボタンで、現在のタブのリンクを数え�
 
   // テストではポップアップもタブとして開くので、テスト用のページを前面に出して「現在のタブ」にする。
   await page.bringToFront();
+
   // コンテンツスクリプトは、ページの読み込みの少し後に動作を開始するので、数えられるまで押し直す。
   await expect(async () =>
   {

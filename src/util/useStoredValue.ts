@@ -23,6 +23,7 @@ export function useStoredValue<TValue>(
     // 監視を先に開始する。取得中に値が変更されても、取りこぼさないようにするため。
     // 画面を閉じた後に届いた値では、再描画しない。
     let active = true;
+
     const unwatch = watch((next) =>
     {
       if(active)
@@ -30,6 +31,7 @@ export function useStoredValue<TValue>(
         setValue(next);
       }
     });
+
     void get().then((loaded) =>
     {
       // 取得中に監視から新しい値が届いていたら、そちらを優先する。
@@ -38,6 +40,7 @@ export function useStoredValue<TValue>(
         setValue((current) => current ?? loaded);
       }
     });
+
     return () =>
     {
       active = false;

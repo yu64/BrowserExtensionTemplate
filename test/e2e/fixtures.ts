@@ -66,6 +66,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
           "--lang=ja",
         ],
       });
+
       const browser = context.browser();
       if(browser === null) throw new Error("ブラウザに接続できません。");
       const session = await browser.newBrowserCDPSession();
@@ -100,6 +101,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       // 保存済みの値を削除して、何も保存されていない状態から開始する。
       await controlPage.evaluate("Promise.all([chrome.storage.local.clear(), chrome.storage.sync.clear()])");
       await use(undefined);
+
       // テストで開いたタブと、置き換えたページの内容を後処理する。
       for(const page of extensionContext.pages())
       {
@@ -108,6 +110,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
           await page.close();
         }
       }
+
       await extensionContext.unrouteAll();
     },
     { auto: true },

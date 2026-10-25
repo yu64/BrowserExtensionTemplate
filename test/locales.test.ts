@@ -52,6 +52,7 @@ describe("メッセージファイル", () =>
   const locales = readdirSync(localesDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name);
+
   const base = getPlaceholders("ja");
 
   it.each(locales)("%s は、日本語と同じ名前とプレースホルダーを持つ", (locale) =>
@@ -63,6 +64,7 @@ describe("メッセージファイル", () =>
 describe("使用しているメッセージの名前", () =>
 {
   const known = Object.keys(getPlaceholders("ja"));
+
   const used = [...new Set(sourceFiles.flatMap((path) =>
   {
     const text = readFileSync(path, "utf8");
