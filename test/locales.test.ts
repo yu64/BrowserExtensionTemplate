@@ -22,19 +22,19 @@ const sourceFiles = [
 ];
 
 /**
- * メッセージの名前を抽出するパターン。`__MSG_名前__`（HTML・manifest）と `messageOf("名前"`（コード）。
+ * メッセージの名前を抽出するパターン。`__MSG_名前__`（HTML・manifest）と `getMessage("名前"`（コード）。
  * コードの名前は型でも検査しているが、HTML と manifest の名前は型で検査できないので、ここで確認する。
  */
 const messageNamePatterns = [
   /__MSG_(\w+)__/g,
-  /messageOf\("(\w+)"/g,
+  /getMessage\("(\w+)"/g,
 ];
 
 /**
  * 言語ごとのメッセージファイルを読み込む。
  * @returns メッセージの名前ごとの、プレースホルダー（placeholders）の名前の一覧。
  */
-function placeholdersOf(locale: string): Record<string, string[]>
+function getPlaceholders(locale: string): Record<string, string[]>
 {
   const json: unknown = JSON.parse(readFileSync(join(localesDir, locale, "messages.json"), "utf8"));
   if(!isRecord(json))
@@ -58,17 +58,17 @@ describe("メッセージファイル", () =>
   const locales = readdirSync(localesDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name);
-  const base = placeholdersOf("ja");
+  const base = getPlaceholders("ja");
 
   it.each(locales)("%s は、日本語と同じ名前とプレースホルダーを持つ", (locale) =>
   {
-    expect(placeholdersOf(locale)).toEqual(base);
+    expect(getPlaceholders(locale)).toEqual(base);
   });
 });
 
 describe("使用しているメッセージの名前", () =>
 {
-  const known = Object.keys(placeholdersOf("ja"));
+  const known = Object.keys(getPlaceholders("ja"));
   const used = [...new Set(sourceFiles.flatMap((path) =>
   {
     const text = readFileSync(path, "utf8");
@@ -94,6 +94,6 @@ describe("既定の言語", () =>
   {
     const config = readFileSync(join(import.meta.dirname, "../wxt.config.ts"), "utf8");
     const locale = /default_locale:\s*"([^"]+)"/.exec(config)?.[1] ?? "";
-    expect(() => placeholdersOf(locale)).not.toThrow();
+    expect(() => getPlaceholders(locale)).not.toThrow();
   });
 });

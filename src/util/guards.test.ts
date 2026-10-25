@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guardedValueOf, isBoolean, isNumber, isRecord, isString, isUndefined } from "./guards";
+import { getValidValue, isBoolean, isNumber, isRecord, isString, isUndefined } from "./guards";
 
 describe("isRecord", () =>
 {
@@ -38,15 +38,15 @@ describe("isString・isBoolean・isUndefined", () =>
   });
 });
 
-describe("guardedValueOf", () =>
+describe("getValidValue", () =>
 {
   it("型に合えばそのまま返す", () =>
   {
-    expect(guardedValueOf(3, isNumber, 0)).toBe(3);
+    expect(getValidValue(3, isNumber, 0)).toBe(3);
   });
 
   it("型に合わなければ代わりの値を返す", () =>
   {
-    expect(guardedValueOf("3", isNumber, 0)).toBe(0);
+    expect(getValidValue("3", isNumber, 0)).toBe(0);
   });
 });

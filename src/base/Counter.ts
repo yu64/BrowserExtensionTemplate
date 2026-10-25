@@ -1,5 +1,5 @@
 import { storage } from "wxt/utils/storage";
-import { guardedValueOf } from "@/util/guards";
+import { getValidValue } from "@/util/guards";
 import { SerialQueue } from "@/util/SerialQueue";
 
 // #############################################################################
@@ -17,7 +17,7 @@ const badgeMax = 99;
 /**
  * カウンターの値（ボタンを押した回数）。
  * 端末ごとの値でよいので、同期しない local に保存する。
- * 取得した値は、counterOf で形式を検証してから使用する。
+ * 取得した値は、toCount で形式を検証してから使用する。
  */
 const counterItem = storage.defineItem<number>("local:counter", { fallback: 0 });
 
@@ -32,9 +32,9 @@ const counterQueue = new SerialQueue();
 /**
  * 保存済みのカウンターの値を取得する。
  */
-export async function loadCounter(): Promise<number>
+export async function getCounter(): Promise<number>
 {
-  return counterOf(await counterItem.getValue());
+  return toCount(await counterItem.getValue());
 }
 
 /**
@@ -46,7 +46,7 @@ export function incrementCounter(): Promise<number>
 {
   return counterQueue.run(async () =>
   {
-    const next = await loadCounter() + 1;
+    const next = await getCounter() + 1;
     await counterItem.setValue(next);
     return next;
   });
@@ -60,7 +60,7 @@ export function watchCounter(onChange: (count: number) => void): () => void
 {
   return counterItem.watch((stored) =>
   {
-    onChange(counterOf(stored));
+    onChange(toCount(stored));
   });
 }
 
@@ -68,16 +68,16 @@ export function watchCounter(onChange: (count: number) => void): () => void
  * 保存済みの値から、カウンターの値を取得する。
  * 0 以上の整数でなければ 0 にする。破損した値のまま加算すると、文字列が連結されるなどして、増やせなくなるため。
  */
-export function counterOf(stored: unknown): number
+export function toCount(stored: unknown): number
 {
-  return guardedValueOf(stored, isCount, 0);
+  return getValidValue(stored, isCount, 0);
 }
 
 /**
  * カウンターの値から、バッジに表示する文字列を作成する。
  * 0 のときは、バッジを非表示にするために空文字にする。
  */
-export function badgeTextOf(count: number): string
+export function toBadgeText(count: number): string
 {
   if(count <= 0) return "";
   return (

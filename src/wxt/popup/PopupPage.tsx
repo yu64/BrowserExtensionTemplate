@@ -2,9 +2,9 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { browser } from "wxt/browser";
 import { Button } from "@/base/Button";
-import { loadCounter, watchCounter } from "@/base/Counter";
+import { getCounter, watchCounter } from "@/base/Counter";
 import { messenger } from "@/base/protocol";
-import { messageOf } from "@/util/i18n";
+import { getMessage } from "@/util/i18n";
 import { useStoredValue } from "@/util/useStoredValue";
 
 // #############################################################################
@@ -32,7 +32,7 @@ type LinkCount = (
 export function PopupPage(): ReactNode
 {
   // カウンターの値はバックグラウンドが変更する。変更されたら、ここでも再描画する。
-  const count = useStoredValue(loadCounter, watchCounter);
+  const count = useStoredValue(getCounter, watchCounter);
   const [linkCount, setLinkCount] = useState<LinkCount>({ kind: "none" });
   const [incrementFailed, setIncrementFailed] = useState(false);
 
@@ -61,7 +61,7 @@ export function PopupPage(): ReactNode
    */
   function countLinks(): void
   {
-    linkCountOfActiveTab().then(
+    countLinksInActiveTab().then(
       (counted) =>
       {
         setLinkCount({
@@ -91,34 +91,34 @@ export function PopupPage(): ReactNode
 
   return (
     <main className="grid w-[280px] gap-4 p-4">
-      <h1 className="text-lg font-bold">{messageOf("extName")}</h1>
+      <h1 className="text-lg font-bold">{getMessage("extName")}</h1>
 
       <section className="grid grid-cols-[1fr_auto] items-center gap-2">
-        <span>{messageOf("popupCounterLabel")}</span>
+        <span>{getMessage("popupCounterLabel")}</span>
         <output id="counter" className="text-2xl font-bold tabular-nums">{count}</output>
         <Button id="increment" className="col-span-full" onClick={increment}>
-          {messageOf("popupIncrement")}
+          {getMessage("popupIncrement")}
         </Button>
       </section>
 
       <section className="grid gap-2">
         <Button id="count-links" onClick={countLinks}>
-          {messageOf("popupCountLinks")}
+          {getMessage("popupCountLinks")}
         </Button>
         {/* 結果がまだないときに、余白だけが残らないように非表示にする（empty:hidden）。 */}
         <p id="link-count" className={(linkCount.kind === "failed" ? "text-danger empty:hidden" : "empty:hidden")} aria-live="polite">
-          {(linkCount.kind === "counted") && messageOf("popupLinkCount", String(linkCount.count))}
-          {(linkCount.kind === "failed") && messageOf("popupCountLinksFailed")}
+          {(linkCount.kind === "counted") && getMessage("popupLinkCount", String(linkCount.count))}
+          {(linkCount.kind === "failed") && getMessage("popupCountLinksFailed")}
         </p>
       </section>
 
       <p id="error" className="text-danger empty:hidden" role="alert">
-        {incrementFailed && messageOf("popupIncrementFailed")}
+        {incrementFailed && getMessage("popupIncrementFailed")}
       </p>
 
       <footer>
         <Button id="open-options" variant="link" onClick={openOptions}>
-          {messageOf("popupOpenOptions")}
+          {getMessage("popupOpenOptions")}
         </Button>
       </footer>
     </main>
@@ -131,7 +131,7 @@ export function PopupPage(): ReactNode
 /**
  * 現在のタブのリンクの数を、コンテンツスクリプトに数えさせる。
  */
-async function linkCountOfActiveTab(): Promise<number>
+async function countLinksInActiveTab(): Promise<number>
 {
   const [tab] = await browser.tabs.query({
     active: true,

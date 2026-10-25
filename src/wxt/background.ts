@@ -1,6 +1,6 @@
 import { browser } from "wxt/browser";
 import { defineBackground } from "wxt/utils/define-background";
-import { badgeTextOf, incrementCounter, loadCounter, watchCounter } from "@/base/Counter";
+import { toBadgeText, incrementCounter, getCounter, watchCounter } from "@/base/Counter";
 import { messenger } from "@/base/protocol";
 
 // #############################################################################
@@ -12,17 +12,17 @@ import { messenger } from "@/base/protocol";
  */
 function main(): void
 {
-  messenger.listen({ incrementCounter });
+  messenger.addListener({ incrementCounter });
 
   // カウンターの値が変更されたら、変更元に関係なくバッジに表示する。
-  watchCounter(showBadge);
-  void loadCounter().then(showBadge);
+  watchCounter(updateBadge);
+  void getCounter().then(updateBadge);
 }
 
 /**
  * カウンターの値を、ツールバーのボタンのバッジに表示する。
  */
-function showBadge(count: number): void
+function updateBadge(count: number): void
 {
   // MV2（Firefox の初期設定）には action がなく、browserAction を使用するため分岐する。
   const action = (
@@ -30,7 +30,7 @@ function showBadge(count: number): void
     ? browser.action
     : browser.browserAction
   );
-  void action.setBadgeText({ text: badgeTextOf(count) });
+  void action.setBadgeText({ text: toBadgeText(count) });
 }
 
 // #############################################################################

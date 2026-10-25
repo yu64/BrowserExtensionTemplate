@@ -81,7 +81,7 @@ test("コンテンツスクリプトが、ページのリンクを数える", as
   await expect.poll(() => popup.evaluate(`
     chrome.tabs.query({}).then((tabs) => Promise.all(tabs.map((tab) => (
       chrome.tabs.sendMessage(tab.id, { type: "countLinks" }).catch(() => undefined)
-    )))).then((replies) => replies.find((reply) => reply?.ok))
+    )))).then((responses) => responses.find((response) => response?.ok))
   `)).toEqual({
     ok: true,
     value: 3,
@@ -92,10 +92,10 @@ test("設定でリンクを枠で囲むと、開いているページに枠が�
 {
   const page = await openTestPage(extensionContext);
   const options = await openExtensionPage(extensionContext, extensionId, "options.html");
-  const linksHighlighted = options.locator("#links-highlighted");
-  await expect(linksHighlighted).not.toBeChecked();
+  const isLinkHighlighted = options.locator("#link-highlighted");
+  await expect(isLinkHighlighted).not.toBeChecked();
 
-  await linksHighlighted.click();
+  await isLinkHighlighted.click();
 
   await expect(options.locator("#status")).toHaveText("保存しました。");
   await expect(page.locator("html")).toHaveAttribute("data-extension-template-highlight");

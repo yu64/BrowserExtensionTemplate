@@ -44,7 +44,7 @@ describe("Messenger", () =>
   it("送信したリクエストに、ハンドラーの応答が返る", async () =>
   {
     const messenger = createMessenger();
-    messenger.listen({ double: (value) => value * 2 });
+    messenger.addListener({ double: (value) => value * 2 });
 
     expect(await messenger.send("double", 21)).toBe(42);
   });
@@ -52,7 +52,7 @@ describe("Messenger", () =>
   it("リクエストが undefined の種別は、リクエストを省略して送信できる", async () =>
   {
     const messenger = createMessenger();
-    messenger.listen({ ping: () => "pong" });
+    messenger.addListener({ ping: () => "pong" });
 
     expect(await messenger.send("ping")).toBe("pong");
   });
@@ -72,7 +72,7 @@ describe("Messenger", () =>
   it("非同期のハンドラーの応答も返る", async () =>
   {
     const messenger = createMessenger();
-    messenger.listen({ greet: (name) => Promise.resolve(`こんにちは、${name}`) });
+    messenger.addListener({ greet: (name) => Promise.resolve(`こんにちは、${name}`) });
 
     expect(await messenger.send("greet", "WXT")).toBe("こんにちは、WXT");
   });
@@ -80,7 +80,7 @@ describe("Messenger", () =>
   it("ハンドラーの例外は、送信側で例外になる", async () =>
   {
     const messenger = createMessenger();
-    messenger.listen({
+    messenger.addListener({
       double: () =>
       {
         throw new Error("失敗しました");
@@ -93,8 +93,8 @@ describe("Messenger", () =>
   it("担当する種別だけに応答する", async () =>
   {
     const messenger = createMessenger();
-    messenger.listen({ double: (value) => value * 2 });
-    messenger.listen({ greet: (name) => name });
+    messenger.addListener({ double: (value) => value * 2 });
+    messenger.addListener({ greet: (name) => name });
 
     expect(await messenger.send("double", 2)).toBe(4);
     expect(await messenger.send("greet", "やあ")).toBe("やあ");
@@ -103,15 +103,15 @@ describe("Messenger", () =>
   it("リクエストの形式が不正なら、ハンドラーを呼び出さずにエラーを返す", async () =>
   {
     const messenger = createMessenger();
-    messenger.listen({ double: (value) => value * 2 });
+    messenger.addListener({ double: (value) => value * 2 });
 
     // 型では防げない、古い画面などから届いた不正な形式のリクエストを再現する。
-    const reply: unknown = await fakeBrowser.runtime.sendMessage({
+    const response: unknown = await fakeBrowser.runtime.sendMessage({
       type: "double",
       request: "2",
     });
 
-    expect(reply).toEqual({
+    expect(response).toEqual({
       ok: false,
       error: "リクエストの形式が不正です: double",
     });
@@ -120,18 +120,18 @@ describe("Messenger", () =>
   it("扱わない種別のメッセージには応答しない", async () =>
   {
     const messenger = createMessenger();
-    messenger.listen({ double: (value) => value * 2 });
+    messenger.addListener({ double: (value) => value * 2 });
 
-    const reply: unknown = await fakeBrowser.runtime.sendMessage({ type: "unknown" });
+    const response: unknown = await fakeBrowser.runtime.sendMessage({ type: "unknown" });
 
-    expect(reply).toBeUndefined();
+    expect(response).toBeUndefined();
   });
 
   it("受信を終了したら、応答しない", async () =>
   {
     const messenger = createMessenger();
-    const unlisten = messenger.listen({ double: (value) => value * 2 });
-    unlisten();
+    const removeListener = messenger.addListener({ double: (value) => value * 2 });
+    removeListener();
 
     // リスナーが1つもないときは、ブラウザが送信の時点で例外にする。
     await expect(messenger.send("double", 1)).rejects.toThrow();

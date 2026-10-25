@@ -1,6 +1,6 @@
 import { storage } from "wxt/utils/storage";
 import type { WxtStorageItem } from "wxt/utils/storage";
-import { guardedValueOf, isBoolean, isRecord } from "@/util/guards";
+import { getValidValue, isBoolean, isRecord } from "@/util/guards";
 import type { Guard } from "@/util/guards";
 import { SerialQueue } from "@/util/SerialQueue";
 
@@ -13,7 +13,7 @@ import { SerialQueue } from "@/util/SerialQueue";
  */
 export type Settings = {
   /** ページのリンクを、枠で囲んで表示するか。 */
-  linksHighlighted: boolean;
+  isLinkHighlighted: boolean;
   /** 枠の色。`#rrggbb` の形式で保持する。色の入力欄が返す形式に合わせるため。 */
   highlightColor: string;
 };
@@ -32,7 +32,7 @@ type SettingItems = {
  * 何も保存されていないときの設定（初期値）。
  */
 export const defaultSettings: Settings = {
-  linksHighlighted: false,
+  isLinkHighlighted: false,
   highlightColor: "#e8590c",
 };
 
@@ -40,7 +40,7 @@ export const defaultSettings: Settings = {
  * 設定の項目ごとの、保存済みの値の形式を検証する関数。
  */
 const settingGuards: { [TKey in keyof Settings]: Guard<Settings[TKey]> } = {
-  linksHighlighted: isBoolean,
+  isLinkHighlighted: isBoolean,
   highlightColor: isHexColor,
 };
 
@@ -54,19 +54,19 @@ const settingGuards: { [TKey in keyof Settings]: Guard<Settings[TKey]> } = {
  * その場合、別のタブや端末でほぼ同時に別の項目を変更すると、後から保存したほうが先の変更を古い値で上書きしてしまうため。
  * 同じ項目を同時に変更したときは、後から変更したほうが残る。
  *
- * 取得した値は、settingsOf で形式を検証してから使用する。
+ * 取得した値は、toSettings で形式を検証してから使用する。
  * 項目の形式を変更するときは、その項目に version と migrations を指定する。例えば、色を `#rrggbb` から色名に変更する場合:
- * `storage.defineItem<string>("sync:highlightColor", { fallback: "orange", version: 2, migrations: { 2: colorNameOf } })`
+ * `storage.defineItem<string>("sync:highlightColor", { fallback: "orange", version: 2, migrations: { 2: toColorName } })`
  */
 const settingItems: SettingItems = {
-  linksHighlighted: storage.defineItem<boolean>("sync:linksHighlighted", { fallback: defaultSettings.linksHighlighted }),
+  isLinkHighlighted: storage.defineItem<boolean>("sync:isLinkHighlighted", { fallback: defaultSettings.isLinkHighlighted }),
   highlightColor: storage.defineItem<string>("sync:highlightColor", { fallback: defaultSettings.highlightColor }),
 };
 
 /**
  * 設定の項目名の一覧。
  */
-const settingKeys: (keyof Settings)[] = ["linksHighlighted", "highlightColor"];
+const settingKeys: (keyof Settings)[] = ["isLinkHighlighted", "highlightColor"];
 
 // #############################################################################
 // MARK: 関数
@@ -74,10 +74,10 @@ const settingKeys: (keyof Settings)[] = ["linksHighlighted", "highlightColor"];
 /**
  * 保存済みの設定を取得する。
  */
-export async function loadSettings(): Promise<Settings>
+export async function getSettings(): Promise<Settings>
 {
   const entries = await Promise.all(settingKeys.map(async (key): Promise<[string, unknown]> => [key, await settingItems[key].getValue()]));
-  return settingsOf(Object.fromEntries(entries));
+  return toSettings(Object.fromEntries(entries));
 }
 
 /**
@@ -86,8 +86,8 @@ export async function loadSettings(): Promise<Settings>
  */
 export async function updateSettings(patch: Partial<Settings>): Promise<Settings>
 {
-  await Promise.all(settingKeys.map((key) => writeSetting(key, patch[key])));
-  return loadSettings();
+  await Promise.all(settingKeys.map((key) => setSetting(key, patch[key])));
+  return getSettings();
 }
 
 /**
@@ -101,7 +101,7 @@ export function watchSettings(onChange: (settings: Settings) => void): () => voi
   const queue = new SerialQueue();
   const unwatches = settingKeys.map((key) => settingItems[key].watch(() =>
   {
-    void queue.run(loadSettings).then(onChange);
+    void queue.run(getSettings).then(onChange);
   }));
   return () =>
   {
@@ -117,7 +117,7 @@ export function watchSettings(onChange: (settings: Settings) => void): () => voi
  * 欠けている項目や、形式が不正な項目は、初期値にする。
  * 後から項目を追加したときや、古いバージョン・別の端末が別の形式で保存したときにも、問題なく取得できるようにするため。
  */
-export function settingsOf(stored: unknown): Settings
+export function toSettings(stored: unknown): Settings
 {
   const record = (
     (isRecord(stored))
@@ -125,8 +125,8 @@ export function settingsOf(stored: unknown): Settings
     : {}
   );
   return {
-    linksHighlighted: guardedValueOf(record.linksHighlighted, settingGuards.linksHighlighted, defaultSettings.linksHighlighted),
-    highlightColor: guardedValueOf(record.highlightColor, settingGuards.highlightColor, defaultSettings.highlightColor),
+    isLinkHighlighted: getValidValue(record.isLinkHighlighted, settingGuards.isLinkHighlighted, defaultSettings.isLinkHighlighted),
+    highlightColor: getValidValue(record.highlightColor, settingGuards.highlightColor, defaultSettings.highlightColor),
   };
 }
 
@@ -136,7 +136,7 @@ export function settingsOf(stored: unknown): Settings
 /**
  * 設定の1項目を保存する。値がないとき（変更しない項目）は、何もしない。
  */
-async function writeSetting<TKey extends keyof Settings>(key: TKey, value: Settings[TKey] | undefined): Promise<void>
+async function setSetting<TKey extends keyof Settings>(key: TKey, value: Settings[TKey] | undefined): Promise<void>
 {
   if(value === undefined) return;
   await settingItems[key].setValue(value);

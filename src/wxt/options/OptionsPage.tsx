@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { loadSettings, updateSettings, watchSettings } from "@/base/Settings";
+import { getSettings, updateSettings, watchSettings } from "@/base/Settings";
 import type { Settings } from "@/base/Settings";
-import { messageOf } from "@/util/i18n";
+import { getMessage } from "@/util/i18n";
 import { useStoredValue } from "@/util/useStoredValue";
 
 // #############################################################################
@@ -44,7 +44,7 @@ const statusDuration = 2000;
  */
 export function OptionsPage(): ReactNode
 {
-  const settings = useStoredValue(loadSettings, watchSettings);
+  const settings = useStoredValue(getSettings, watchSettings);
   const [status, setStatus] = useState<SaveStatus>({ kind: "idle" });
 
   // 「保存しました」は、一定時間後に非表示にする。連続で保存したら、そこから計測し直す。
@@ -84,7 +84,7 @@ export function OptionsPage(): ReactNode
 
   return (
     <main className="mx-auto grid max-w-[640px] gap-6 px-4 py-8">
-      <h1 className="text-lg font-bold">{messageOf("optionsTitle")}</h1>
+      <h1 className="text-lg font-bold">{getMessage("optionsTitle")}</h1>
 
       <form
         id="settings"
@@ -96,16 +96,16 @@ export function OptionsPage(): ReactNode
       >
         <label className="flex cursor-pointer items-center gap-2">
           <input
-            id="links-highlighted"
-            name="linksHighlighted"
+            id="link-highlighted"
+            name="isLinkHighlighted"
             type="checkbox"
-            checked={settings.linksHighlighted}
+            checked={settings.isLinkHighlighted}
             onChange={(event) =>
             {
-              save({ linksHighlighted: event.currentTarget.checked });
+              save({ isLinkHighlighted: event.currentTarget.checked });
             }}
           />
-          <span>{messageOf("optionsLinksHighlighted")}</span>
+          <span>{getMessage("optionsLinkHighlighted")}</span>
         </label>
         <label className="flex cursor-pointer items-center gap-2">
           <ColorInput
@@ -116,14 +116,14 @@ export function OptionsPage(): ReactNode
               save({ highlightColor });
             }}
           />
-          <span>{messageOf("optionsHighlightColor")}</span>
+          <span>{getMessage("optionsHighlightColor")}</span>
         </label>
       </form>
 
       {/* 通知がないときも高さを確保する（min-h）。表示・非表示の切り替えで、画面が上下に動かないようにするため。 */}
       <p id="status" className={(status.kind === "failed" ? "min-h-[1.5em] text-danger" : "min-h-[1.5em] text-ink-muted")} aria-live="polite">
-        {(status.kind === "saved") && messageOf("optionsSaved")}
-        {(status.kind === "failed") && messageOf("optionsSaveFailed")}
+        {(status.kind === "saved") && getMessage("optionsSaved")}
+        {(status.kind === "failed") && getMessage("optionsSaveFailed")}
       </p>
     </main>
   );

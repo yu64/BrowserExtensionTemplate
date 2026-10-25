@@ -59,7 +59,7 @@ export function isBoolean(value: unknown): value is boolean
  * 値が型に合えばそのまま返し、合わなければ代わりの値を返す。
  * 保存済みの値のように、破損している可能性がある値の取得に使用する。
  */
-export function guardedValueOf<TValue>(value: unknown, guard: Guard<TValue>, fallback: TValue): TValue
+export function getValidValue<TValue>(value: unknown, guard: Guard<TValue>, fallback: TValue): TValue
 {
   return (
     (guard(value))

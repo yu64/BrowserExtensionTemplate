@@ -41,7 +41,7 @@
   "optionsTitle": {
     "message": "設定"
   },
-  "optionsLinksHighlighted": {
+  "optionsLinkHighlighted": {
     "message": "ページのリンクを枠で囲む"
   },
   "optionsHighlightColor": {

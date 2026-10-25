@@ -1,40 +1,40 @@
 import { describe, expect, it, vi } from "vitest";
 import { storage } from "wxt/utils/storage";
-import { badgeTextOf, counterOf, incrementCounter, loadCounter, watchCounter } from "./Counter";
+import { toBadgeText, toCount, incrementCounter, getCounter, watchCounter } from "./Counter";
 
-describe("badgeTextOf", () =>
+describe("toBadgeText", () =>
 {
   it("0 のときは空文字にする", () =>
   {
-    expect(badgeTextOf(0)).toBe("");
+    expect(toBadgeText(0)).toBe("");
   });
 
   it("99 まではそのまま表示する", () =>
   {
-    expect(badgeTextOf(1)).toBe("1");
-    expect(badgeTextOf(99)).toBe("99");
+    expect(toBadgeText(1)).toBe("1");
+    expect(toBadgeText(99)).toBe("99");
   });
 
   it("99 を超えたら 99+ にする", () =>
   {
-    expect(badgeTextOf(100)).toBe("99+");
+    expect(toBadgeText(100)).toBe("99+");
   });
 });
 
-describe("counterOf", () =>
+describe("toCount", () =>
 {
   it("0 以上の整数はそのまま返す", () =>
   {
-    expect(counterOf(0)).toBe(0);
-    expect(counterOf(42)).toBe(42);
+    expect(toCount(0)).toBe(0);
+    expect(toCount(42)).toBe(42);
   });
 
   it("不正な形式の値は 0 にする", () =>
   {
-    expect(counterOf("5")).toBe(0);
-    expect(counterOf(-1)).toBe(0);
-    expect(counterOf(1.5)).toBe(0);
-    expect(counterOf(null)).toBe(0);
+    expect(toCount("5")).toBe(0);
+    expect(toCount(-1)).toBe(0);
+    expect(toCount(1.5)).toBe(0);
+    expect(toCount(null)).toBe(0);
   });
 });
 
@@ -43,7 +43,7 @@ describe("incrementCounter", () =>
   it("保存済みの値がないときは 0 から増やす", async () =>
   {
     expect(await incrementCounter()).toBe(1);
-    expect(await loadCounter()).toBe(1);
+    expect(await getCounter()).toBe(1);
   });
 
   it("保存済みの値から増やす", async () =>
@@ -63,7 +63,7 @@ describe("incrementCounter", () =>
     const results = await Promise.all([incrementCounter(), incrementCounter(), incrementCounter()]);
 
     expect(results).toEqual([1, 2, 3]);
-    expect(await loadCounter()).toBe(3);
+    expect(await getCounter()).toBe(3);
   });
 });
 

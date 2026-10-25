@@ -17,7 +17,7 @@ export type MessageKey = Parameters<typeof browser.i18n.getMessage>[0];
  * メッセージを、ユーザの言語で取得する。
  * @param substitutions メッセージの中の $1 などに入れる値。
  */
-export function messageOf(key: MessageKey, substitutions?: string | string[]): string
+export function getMessage(key: MessageKey, substitutions?: string | string[]): string
 {
   return browser.i18n.getMessage(key, substitutions);
 }

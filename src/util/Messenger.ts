@@ -55,7 +55,7 @@ export type RequestArgs<TRequest> = (
 /**
  * 送信するデータの形式（エンベロープ）。
  */
-type Envelope = {
+type RequestMessage = {
   type: string;
   request: unknown;
 };
@@ -64,7 +64,7 @@ type Envelope = {
  * 応答するデータの形式。
  * 受信側で発生したエラーを、送信側で例外として受け取れるようにするため。
  */
-type Reply = (
+type ResponseMessage = (
   | {
     ok: true,
     value: unknown,
@@ -106,8 +106,8 @@ export class Messenger<TProtocol extends ProtocolShape>
     ...args: RequestArgs<TProtocol[TType]["request"]>
   ): Promise<TProtocol[TType]["response"]> =>
   {
-    const reply: unknown = await browser.runtime.sendMessage(this.#envelopeOf(type, args));
-    return this.#valueOf(type, reply);
+    const response: unknown = await browser.runtime.sendMessage(this.#createRequestMessage(type, args));
+    return this.#getResponseValue(type, response);
   };
 
   /**
@@ -119,8 +119,8 @@ export class Messenger<TProtocol extends ProtocolShape>
     ...args: RequestArgs<TProtocol[TType]["request"]>
   ): Promise<TProtocol[TType]["response"]> =>
   {
-    const reply: unknown = await browser.tabs.sendMessage(tabId, this.#envelopeOf(type, args));
-    return this.#valueOf(type, reply);
+    const response: unknown = await browser.tabs.sendMessage(tabId, this.#createRequestMessage(type, args));
+    return this.#getResponseValue(type, response);
   };
 
   // ===========================================================================
@@ -130,7 +130,7 @@ export class Messenger<TProtocol extends ProtocolShape>
    * メッセージの受信を開始する。
    * @returns 受信を終了する関数。
    */
-  public listen = (handlers: Handlers<TProtocol>): () => void =>
+  public addListener = (handlers: Handlers<TProtocol>): () => void =>
   {
     const receive = this.#receive;
 
@@ -142,7 +142,7 @@ export class Messenger<TProtocol extends ProtocolShape>
     function listener(
       message: unknown,
       sender: Browser.runtime.MessageSender,
-      sendResponse: (reply: Reply) => void,
+      sendResponse: (response: ResponseMessage) => void,
     ): true | undefined
     {
       return receive(handlers, message, sender, sendResponse);
@@ -162,7 +162,7 @@ export class Messenger<TProtocol extends ProtocolShape>
    * 送信するデータを作成する。
    * @param args 送信する関数が受け取ったリクエストの引数。省略したときは、リクエストを `undefined` にする。
    */
-  #envelopeOf = (type: string, args: readonly unknown[]): Envelope =>
+  #createRequestMessage = (type: string, args: readonly unknown[]): RequestMessage =>
   {
     return {
       type,
@@ -173,26 +173,26 @@ export class Messenger<TProtocol extends ProtocolShape>
   /**
    * 応答のデータから中身を取り出し、検証して返す。
    */
-  #valueOf = <TType extends MessageType<TProtocol>>(
+  #getResponseValue = <TType extends MessageType<TProtocol>>(
     type: TType,
-    reply: unknown,
+    response: unknown,
   ): TProtocol[TType]["response"] =>
   {
     // リスナーがいないと、応答は undefined になる。
-    if(!isReply(reply))
+    if(!isResponseMessage(response))
     {
       throw new Error(`応答がありません: ${type}`);
     }
-    if(!reply.ok)
+    if(!response.ok)
     {
-      throw new Error(reply.error);
+      throw new Error(response.error);
     }
     const guard = this.#guards[type].response;
-    if(!guard(reply.value))
+    if(!guard(response.value))
     {
       throw new Error(`レスポンスの形式が不正です: ${type}`);
     }
-    return reply.value;
+    return response.value;
   };
 
   /**
@@ -203,19 +203,19 @@ export class Messenger<TProtocol extends ProtocolShape>
     handlers: Handlers<TProtocol>,
     message: unknown,
     sender: Browser.runtime.MessageSender,
-    sendResponse: (reply: Reply) => void,
+    sendResponse: (response: ResponseMessage) => void,
   ): true | undefined =>
   {
-    if(!isEnvelope(message) || !this.#isType(message.type))
+    if(!isRequestMessage(message) || !this.#isType(message.type))
     {
       return undefined;
     }
-    const reply = this.#replyOf(handlers, message.type, message.request, sender);
-    if(reply === undefined)
+    const response = this.#createResponseMessage(handlers, message.type, message.request, sender);
+    if(response === undefined)
     {
       return undefined;
     }
-    void reply.then(sendResponse);
+    void response.then(sendResponse);
     return true;
   };
 
@@ -225,12 +225,12 @@ export class Messenger<TProtocol extends ProtocolShape>
    */
   // 型引数は1回しか使用しないが、ハンドラーと検証する関数の型を、同じ種別で結び付けるために必要。
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  #replyOf = <TType extends MessageType<TProtocol>>(
+  #createResponseMessage = <TType extends MessageType<TProtocol>>(
     handlers: Handlers<TProtocol>,
     type: TType,
     request: unknown,
     sender: Browser.runtime.MessageSender,
-  ): Promise<Reply> | undefined =>
+  ): Promise<ResponseMessage> | undefined =>
   {
     const handler = handlers[type];
     if(handler === undefined)
@@ -249,13 +249,13 @@ export class Messenger<TProtocol extends ProtocolShape>
     return Promise.resolve()
       .then(() => handler(request, sender))
       .then(
-        (value): Reply => ({
+        (value): ResponseMessage => ({
           ok: true,
           value,
         }),
-        (error: unknown): Reply => ({
+        (error: unknown): ResponseMessage => ({
           ok: false,
-          error: errorMessageOf(error),
+          error: getErrorMessage(error),
         }),
       );
   };
@@ -275,7 +275,7 @@ export class Messenger<TProtocol extends ProtocolShape>
 /**
  * 値が、送信するデータの形式かを判定する。
  */
-function isEnvelope(value: unknown): value is Envelope
+function isRequestMessage(value: unknown): value is RequestMessage
 {
   return isRecord(value) && isString(value.type);
 }
@@ -283,7 +283,7 @@ function isEnvelope(value: unknown): value is Envelope
 /**
  * 値が、応答するデータの形式かを判定する。
  */
-function isReply(value: unknown): value is Reply
+function isResponseMessage(value: unknown): value is ResponseMessage
 {
   if(!isRecord(value))
   {
@@ -298,7 +298,7 @@ function isReply(value: unknown): value is Reply
 /**
  * 例外から、送信側に伝えるメッセージを取り出す。
  */
-function errorMessageOf(error: unknown): string
+function getErrorMessage(error: unknown): string
 {
   return (
     (error instanceof Error)

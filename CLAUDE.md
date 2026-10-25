@@ -41,10 +41,10 @@ WXT を使用したブラウザ拡張機能のテンプレート。拡張機能�
 
 - 自動インポート（auto-import）は無効にしている。`wxt/browser` や `wxt/utils/...` から明示的に import する。
 - メッセージの種別は `src/base/protocol.ts` に追加する。型と検証する関数の両方を追加する。
-- 画面のメッセージは `public/_locales/*/messages.json` に記述し、コードでは `messageOf` で取得する。HTML と manifest では `__MSG_名前__` の形式で記述する。メッセージを追加したら `npx wxt prepare` で型を再生成する。
-- 画面の `lang` とタイトルは、各画面の `main.tsx` が `messageOf("htmlLang")` などで設定する。
+- 画面のメッセージは `public/_locales/*/messages.json` に記述し、コードでは `getMessage` で取得する。HTML と manifest では `__MSG_名前__` の形式で記述する。メッセージを追加したら `npx wxt prepare` で型を再生成する。
+- 画面の `lang` とタイトルは、各画面の `main.tsx` が `getMessage("htmlLang")` などで設定する。
 - 保存する値は `wxt/utils/storage` の `storage.defineItem` で定義する。形式を変更するときは `version` と `migrations` を使用する。
-- 保存済みの値は、取得したときに形式を検証する（`settingsOf`・`counterOf` を参考にする）。保存するモジュールの外には、検証前の値（storage の item）を公開しない。複数の値は、1つのオブジェクトにせず項目ごとに保存する（`Settings.ts`）。別のタブや端末と同時に保存しても、変更が失われないようにするため。「取得してから保存する」処理は `SerialQueue` で順番に実行し、保存する場所は1か所にまとめる（`Counter.ts` はバックグラウンドだけが保存する）。
+- 保存済みの値は、取得したときに形式を検証する（`toSettings`・`toCount` を参考にする）。保存するモジュールの外には、検証前の値（storage の item）を公開しない。複数の値は、1つのオブジェクトにせず項目ごとに保存する（`Settings.ts`）。別のタブや端末と同時に保存しても、変更が失われないようにするため。「取得してから保存する」処理は `SerialQueue` で順番に実行し、保存する場所は1か所にまとめる（`Counter.ts` はバックグラウンドだけが保存する）。
 - 画面（ポップアップ・設定画面）は、保存済みの値を取得するまで何も描画しない（`useStoredValue` が `undefined` の間は `undefined` を返す）。描画した時点で操作できる状態にする。E2E テストは、見出しの表示を「準備完了」の目印として待つ。
 - 保存済みの値は `useStoredValue(取得する関数, 監視する関数)` で取得する。渡す関数は、ファイルの外で定義したもの（描画のたびに作り直さないもの）にする。
 - React に依存しないもの（バックグラウンド・コンテンツスクリプト・`src/base`・`src/util` の多く）では React を import しない。

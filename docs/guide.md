@@ -56,7 +56,7 @@
 | --- | --- |
 | `Messenger.ts` | 型付きのメッセージの送受信。リクエストとレスポンスの形式を、受信時に検証する。 |
 | `SerialQueue.ts` | 非同期の処理を1つずつ順番に実行する。「取得してから保存する」処理が重なって、変更が失われるのを防ぐ。 |
-| `i18n.ts` | メッセージを取得する `messageOf`。メッセージの名前の型は、WXT がメッセージファイルから生成する。 |
+| `i18n.ts` | メッセージを取得する `getMessage`。メッセージの名前の型は、WXT がメッセージファイルから生成する。 |
 | `useStoredValue.ts` | 保存済みの値を取得し、変更されたら再描画する React のフック。取得する関数と監視する関数を渡して使用する。 |
 | `guards.ts` | 外部から受け取った値の型を判定する関数。 |
 
@@ -127,9 +127,9 @@ E2E テストの補足。
 - **エントリポイント** … `src/wxt/` にファイルを置く。命名規則は [WXT のドキュメント](https://wxt.dev/guide/essentials/entrypoints.html) を参照。
 - **権限** … `wxt.config.ts` の `manifest.permissions` に追加する。
 - **新しいブラウザの機能** … その機能に対応したバージョンに合わせて、`wxt.config.ts` の `minimum_chrome_version`・`strict_min_version` を上げる。
-- **メッセージの種別** … `src/base/protocol.ts` の `Protocol` に型を、`messenger` に検証する関数を追加する。受信側で `messenger.listen({ 種別: 関数 })` を呼び出す。
+- **メッセージの種別** … `src/base/protocol.ts` の `Protocol` に型を、`messenger` に検証する関数を追加する。受信側で `messenger.addListener({ 種別: 関数 })` を呼び出す。
 - **保存する値** … `storage.defineItem` で定義する。形式を変更するときは `version` を上げ、`migrations` に変換処理を書く。
   複数の値をまとめて保持するときは、1つのオブジェクトにせず、`Settings.ts` のように項目ごとに分けて保存する。
   「取得してから保存する」処理（カウンターを増やすなど）は、`SerialQueue` で順番に実行する。キューが機能するのは同じページの中だけなので、保存する場所は1か所（バックグラウンドなど）にまとめる。
-- **画面のメッセージ** … `public/_locales/ja/messages.json` と `en/messages.json` の両方に追加する。`npm run dev` か `npx wxt prepare` を実行すると、`messageOf` で型が有効になる。
+- **画面のメッセージ** … `public/_locales/ja/messages.json` と `en/messages.json` の両方に追加する。`npm run dev` か `npx wxt prepare` を実行すると、`getMessage` で型が有効になる。
   言語のファイルどうしで名前がそろっているかと、HTML や manifest で使用する名前がファイルにあるかは、単体テスト（`test/locales.test.ts`）が確認する。
