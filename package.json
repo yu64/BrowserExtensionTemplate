@@ -27,8 +27,10 @@
     "e2e:report": "playwright show-report temp/playwright-report"
   },
   "dependencies": {
+    "@webext-core/messaging": "^4.0.0",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
