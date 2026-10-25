@@ -1,7 +1,8 @@
 import js from "@eslint/js";
 import stylistic from "@stylistic/eslint-plugin";
-import reactHooks from "eslint-plugin-react-hooks";
 import { defineConfig, globalIgnores } from "eslint/config";
+import importX from "eslint-plugin-import-x";
+import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 // #############################################################################
@@ -135,6 +136,20 @@ export default defineConfig(
         maxBOF: 0,
         maxEOF: 0,
       }],
+      // 複数行の文（if・for・try などのブロックや、複数行の式・宣言）と、関数・クラス・型の宣言の前後には空行を置く。
+      // 大きなまとまりが隣と接して見えて、読みにくくならないようにするため。ブロックの先頭・末尾では不要。
+      "@stylistic/padding-line-between-statements": ["error",
+        {
+          blankLine: "always",
+          prev: "*",
+          next: ["multiline-block-like", "multiline-expression", "multiline-const", "multiline-let", "function", "class", "type", "interface"],
+        },
+        {
+          blankLine: "always",
+          prev: ["multiline-block-like", "multiline-expression", "multiline-const", "multiline-let", "function", "class", "type", "interface"],
+          next: "*",
+        },
+      ],
       "@stylistic/operator-linebreak": ["error", "before"],
       "@stylistic/multiline-ternary": ["error", "always-multiline"],
       "@stylistic/object-curly-newline": ["error", {
@@ -153,6 +168,29 @@ export default defineConfig(
   {
     files: defaultExportFiles,
     rules: { "no-restricted-syntax": ["error", ...restrictedSyntax.filter((rule) => rule.selector !== "ExportDefaultDeclaration")] },
+  },
+  {
+    plugins: { "import-x": importX },
+    rules: {
+      // import の順番は、Node.js の組み込み → パッケージ → @/（src からのパス） → 親のフォルダ → 同じフォルダにする。
+      // 同じまとまりの中は、パスのアルファベット順にする。読む側が、依存の種類を上から順に把握できるようにするため。
+      "import-x/order": ["error", {
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "pathGroups": [{
+          pattern: "@/**",
+          group: "internal",
+        }],
+        "pathGroupsExcludedImportTypes": ["builtin"],
+        "newlines-between": "never",
+        "alphabetize": {
+          order: "asc",
+          caseInsensitive: true,
+        },
+      }],
+      // import はファイルの先頭にまとめ、最後の import の後には空行を1行置く。
+      "import-x/first": "error",
+      "import-x/newline-after-import": ["error", { count: 1 }],
+    },
   },
   {
     // 汎用のモジュールは、この拡張機能に依存させない。ほかの拡張機能でもそのまま使用できるようにするため。
