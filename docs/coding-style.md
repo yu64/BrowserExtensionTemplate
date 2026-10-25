@@ -61,7 +61,7 @@ React を使わない部分では、「React」の節は読み飛ばしてよい
 - 波かっこは、次の行に置く（Allman）。`else`・`catch`・`finally` も、`}` の次の行に置く。関数・クラス・アロー関数の本体も同じにする。オブジェクトのかっこは対象外。
 
   ```ts
-  function sizeOf(vertical: boolean): number
+  function getSize(vertical: boolean): number
   {
     if(vertical)
     {
@@ -130,11 +130,11 @@ React を使わない部分では、「React」の節は読み飛ばしてよい
   return (
     <label className="flex items-center gap-2">
       <input
-        id="links-highlighted"
+        id="link-highlighted"
         type="checkbox"
-        checked={settings.linksHighlighted}
+        checked={settings.isLinkHighlighted}
       />
-      <span>{messageOf("optionsLinksHighlighted")}</span>
+      <span>{getMessage("optionsLinkHighlighted")}</span>
     </label>
   );
   ```
@@ -153,8 +153,8 @@ React を使わない部分では、「React」の節は読み飛ばしてよい
 
 ## 名づけ
 - 派生した値は、名詞の関数にする（`layoutSummary` など）。
-- 作るものは `createXxx`、読み取りは `xxxOf` にする（`paperSizeOf`・`uniqueNameOf` など）。
-- 真偽の引数は、`is` を付けない形容詞にする（`disabled`・`selected`・`open`）。
+- 作成は `createXxx`、取得は `getXxx`、変換は `toXxx` にする（`createMessenger`・`getPaperSize`・`toSettings` など）。
+- 真偽の値は `isXxx`・`canXxx`・`hasXxx` にしてよい。HTML の属性に合わせる部品の引数（`disabled`・`selected`・`open`）は、形容詞のままでよい。
 - 1つの値を編集する部品の引数は、`value` / `onChange` にする。そのほかの知らせは `onXxx` にする。
 - 画面の文言とコードの言葉をそろえる。
 
