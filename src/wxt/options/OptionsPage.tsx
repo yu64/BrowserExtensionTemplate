@@ -1,12 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { getSettings, updateSettings, watchSettings } from "@/base/Settings";
-import type { Settings } from "@/base/Settings";
-import { getMessage } from "@/util/i18n";
+import type { Settings, SettingsStore } from "@/base/SettingsStore";
+import * as i18n from "@/util/i18n";
 import { useStoredValue } from "@/util/useStoredValue";
 
 // #############################################################################
 // MARK: 型定義
+
+/**
+ * 設定画面の引数。
+ */
+export type Props = {
+  /** 設定の保存先。 */
+  settingsStore: SettingsStore;
+};
 
 /**
  * 保存の結果の通知。
@@ -42,25 +49,28 @@ const statusDuration = 2000;
  * 入力を変更したら、すぐに保存する。保存の押し忘れを防ぐため。
  * 保存済みの設定を取得するまでは、何も描画しない。古い値をもとに入力されて、保存済みの値を上書きしないようにするため。
  */
-export function OptionsPage(): ReactNode
+export function OptionsPage({ settingsStore }: Props): ReactNode
 {
-  const settings = useStoredValue(getSettings, watchSettings);
+  const settings = useStoredValue(settingsStore.get, settingsStore.watch);
   const [status, setStatus] = useState<SaveStatus>({ kind: "idle" });
 
   // 「保存しました」は、一定時間後に非表示にする。連続で保存したら、そこから計測し直す。
   useEffect(() =>
   {
     if(status.kind !== "saved") return undefined;
+
     const timer = window.setTimeout(() =>
     {
       setStatus({ kind: "idle" });
     }, statusDuration);
+
     return () =>
     {
       window.clearTimeout(timer);
     };
   }, [status]);
 
+  // 保存済みの値を取得するまでは、何も描画しない。
   if(settings === undefined) return undefined;
 
   /**
@@ -68,7 +78,7 @@ export function OptionsPage(): ReactNode
    */
   function save(patch: Partial<Settings>): void
   {
-    updateSettings(patch).then(
+    settingsStore.update(patch).then(
       () =>
       {
         setStatus({ kind: "saved" });
@@ -84,7 +94,7 @@ export function OptionsPage(): ReactNode
 
   return (
     <main className="mx-auto grid max-w-[640px] gap-6 px-4 py-8">
-      <h1 className="text-lg font-bold">{getMessage("optionsTitle")}</h1>
+      <h1 className="text-lg font-bold">{i18n.getMessage("optionsTitle")}</h1>
 
       <form
         id="settings"
@@ -105,7 +115,7 @@ export function OptionsPage(): ReactNode
               save({ isLinkHighlighted: event.currentTarget.checked });
             }}
           />
-          <span>{getMessage("optionsLinkHighlighted")}</span>
+          <span>{i18n.getMessage("optionsLinkHighlighted")}</span>
         </label>
         <label className="flex cursor-pointer items-center gap-2">
           <ColorInput
@@ -116,14 +126,14 @@ export function OptionsPage(): ReactNode
               save({ highlightColor });
             }}
           />
-          <span>{getMessage("optionsHighlightColor")}</span>
+          <span>{i18n.getMessage("optionsHighlightColor")}</span>
         </label>
       </form>
 
       {/* 通知がないときも高さを確保する（min-h）。表示・非表示の切り替えで、画面が上下に動かないようにするため。 */}
       <p id="status" className={(status.kind === "failed" ? "min-h-[1.5em] text-danger" : "min-h-[1.5em] text-ink-muted")} aria-live="polite">
-        {(status.kind === "saved") && getMessage("optionsSaved")}
-        {(status.kind === "failed") && getMessage("optionsSaveFailed")}
+        {(status.kind === "saved") && i18n.getMessage("optionsSaved")}
+        {(status.kind === "failed") && i18n.getMessage("optionsSaveFailed")}
       </p>
     </main>
   );
@@ -165,6 +175,7 @@ function ColorInput({ id, value, onChange }: ColorInputProps): ReactNode
     }
 
     input.addEventListener("change", handleChange);
+
     return () =>
     {
       input.removeEventListener("change", handleChange);

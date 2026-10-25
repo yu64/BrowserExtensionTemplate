@@ -2,13 +2,21 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { browser } from "wxt/browser";
 import { Button } from "@/base/Button";
-import { getCounter, watchCounter } from "@/base/Counter";
-import { sendMessage } from "@/base/protocol";
-import { getMessage } from "@/util/i18n";
+import type { CounterStore } from "@/base/CounterStore";
+import * as protocol from "@/base/protocol";
+import * as i18n from "@/util/i18n";
 import { useStoredValue } from "@/util/useStoredValue";
 
 // #############################################################################
 // MARK: 型定義
+
+/**
+ * ポップアップの引数。
+ */
+export type Props = {
+  /** カウンターの保存先。表示と監視に使用する（保存はバックグラウンドが担当する）。 */
+  counterStore: CounterStore;
+};
 
 /**
  * リンクを数えた結果。
@@ -29,13 +37,14 @@ type LinkCount = (
  * ポップアップ。
  * 保存済みのカウンターの値を取得するまでは、何も描画しない。描画した時点で、どのボタンも使用できる状態にするため。
  */
-export function PopupPage(): ReactNode
+export function PopupPage({ counterStore }: Props): ReactNode
 {
   // カウンターの値はバックグラウンドが変更する。変更されたら、ここでも再描画する。
-  const count = useStoredValue(getCounter, watchCounter);
+  const count = useStoredValue(counterStore.get, counterStore.watch);
   const [linkCount, setLinkCount] = useState<LinkCount>({ kind: "none" });
   const [incrementFailed, setIncrementFailed] = useState(false);
 
+  // 保存済みの値を取得するまでは、何も描画しない。
   if(count === undefined) return undefined;
 
   /**
@@ -43,7 +52,7 @@ export function PopupPage(): ReactNode
    */
   function increment(): void
   {
-    sendMessage("incrementCounter").then(
+    protocol.sendMessage("incrementCounter").then(
       () =>
       {
         setIncrementFailed(false);
@@ -91,34 +100,34 @@ export function PopupPage(): ReactNode
 
   return (
     <main className="grid w-[280px] gap-4 p-4">
-      <h1 className="text-lg font-bold">{getMessage("extName")}</h1>
+      <h1 className="text-lg font-bold">{i18n.getMessage("extName")}</h1>
 
       <section className="grid grid-cols-[1fr_auto] items-center gap-2">
-        <span>{getMessage("popupCounterLabel")}</span>
+        <span>{i18n.getMessage("popupCounterLabel")}</span>
         <output id="counter" className="text-2xl font-bold tabular-nums">{count}</output>
         <Button id="increment" className="col-span-full" onClick={increment}>
-          {getMessage("popupIncrement")}
+          {i18n.getMessage("popupIncrement")}
         </Button>
       </section>
 
       <section className="grid gap-2">
         <Button id="count-links" onClick={countLinks}>
-          {getMessage("popupCountLinks")}
+          {i18n.getMessage("popupCountLinks")}
         </Button>
         {/* 結果がまだないときに、余白だけが残らないように非表示にする（empty:hidden）。 */}
         <p id="link-count" className={(linkCount.kind === "failed" ? "text-danger empty:hidden" : "empty:hidden")} aria-live="polite">
-          {(linkCount.kind === "counted") && getMessage("popupLinkCount", String(linkCount.count))}
-          {(linkCount.kind === "failed") && getMessage("popupCountLinksFailed")}
+          {(linkCount.kind === "counted") && i18n.getMessage("popupLinkCount", String(linkCount.count))}
+          {(linkCount.kind === "failed") && i18n.getMessage("popupCountLinksFailed")}
         </p>
       </section>
 
       <p id="error" className="text-danger empty:hidden" role="alert">
-        {incrementFailed && getMessage("popupIncrementFailed")}
+        {incrementFailed && i18n.getMessage("popupIncrementFailed")}
       </p>
 
       <footer>
         <Button id="open-options" variant="link" onClick={openOptions}>
-          {getMessage("popupOpenOptions")}
+          {i18n.getMessage("popupOpenOptions")}
         </Button>
       </footer>
     </main>
@@ -137,6 +146,7 @@ async function countLinksInActiveTab(): Promise<number>
     active: true,
     currentWindow: true,
   });
+
   if(tab?.id === undefined) throw new Error("現在のタブが見つかりません。");
-  return sendMessage("countLinks", undefined, tab.id);
+  return protocol.sendMessage("countLinks", undefined, tab.id);
 }

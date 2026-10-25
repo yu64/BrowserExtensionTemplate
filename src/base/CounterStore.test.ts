@@ -1,6 +1,16 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { storage } from "wxt/utils/storage";
-import { toBadgeText, toCount, incrementCounter, getCounter, watchCounter } from "./Counter";
+import { CounterStore, toBadgeText } from "./CounterStore";
+
+/**
+ * テストごとに作成し直すインスタンス。
+ */
+let store = new CounterStore();
+
+beforeEach(() =>
+{
+  store = new CounterStore();
+});
 
 describe("toBadgeText", () =>
 {
@@ -21,61 +31,61 @@ describe("toBadgeText", () =>
   });
 });
 
-describe("toCount", () =>
+describe("CounterStore.parse", () =>
 {
   it("0 以上の整数はそのまま返す", () =>
   {
-    expect(toCount(0)).toBe(0);
-    expect(toCount(42)).toBe(42);
+    expect(store.parse(0)).toBe(0);
+    expect(store.parse(42)).toBe(42);
   });
 
   it("不正な形式の値は 0 にする", () =>
   {
-    expect(toCount("5")).toBe(0);
-    expect(toCount(-1)).toBe(0);
-    expect(toCount(1.5)).toBe(0);
-    expect(toCount(null)).toBe(0);
+    expect(store.parse("5")).toBe(0);
+    expect(store.parse(-1)).toBe(0);
+    expect(store.parse(1.5)).toBe(0);
+    expect(store.parse(null)).toBe(0);
   });
 });
 
-describe("incrementCounter", () =>
+describe("CounterStore.increment", () =>
 {
   it("保存済みの値がないときは 0 から増やす", async () =>
   {
-    expect(await incrementCounter()).toBe(1);
-    expect(await getCounter()).toBe(1);
+    expect(await store.increment()).toBe(1);
+    expect(await store.get()).toBe(1);
   });
 
   it("保存済みの値から増やす", async () =>
   {
     await storage.setItem("local:counter", 41);
-    expect(await incrementCounter()).toBe(42);
+    expect(await store.increment()).toBe(42);
   });
 
   it("保存済みの値が破損していたら、0 から増やし直す", async () =>
   {
     await storage.setItem("local:counter", "5");
-    expect(await incrementCounter()).toBe(1);
+    expect(await store.increment()).toBe(1);
   });
 
   it("同時に呼び出しても、呼び出した回数だけ増える", async () =>
   {
-    const results = await Promise.all([incrementCounter(), incrementCounter(), incrementCounter()]);
+    const results = await Promise.all([store.increment(), store.increment(), store.increment()]);
 
     expect(results).toEqual([1, 2, 3]);
-    expect(await getCounter()).toBe(3);
+    expect(await store.get()).toBe(3);
   });
 });
 
-describe("watchCounter", () =>
+describe("CounterStore.watch", () =>
 {
   it("変更されたら、検証済みの値で通知する", async () =>
   {
     const onChange = vi.fn();
-    const unwatch = watchCounter(onChange);
+    const unwatch = store.watch(onChange);
 
     await storage.setItem("local:counter", "破損した値");
-    await incrementCounter();
+    await store.increment();
     unwatch();
 
     expect(onChange).toHaveBeenNthCalledWith(1, 0);

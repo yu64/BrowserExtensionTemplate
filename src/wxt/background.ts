@@ -1,7 +1,7 @@
 import { browser } from "wxt/browser";
 import { defineBackground } from "wxt/utils/define-background";
-import { toBadgeText, incrementCounter, getCounter, watchCounter } from "@/base/Counter";
-import { onMessage } from "@/base/protocol";
+import { CounterStore, toBadgeText } from "@/base/CounterStore";
+import * as protocol from "@/base/protocol";
 
 // #############################################################################
 // MARK: 内部関数
@@ -12,11 +12,13 @@ import { onMessage } from "@/base/protocol";
  */
 function main(): void
 {
-  onMessage("incrementCounter", () => incrementCounter());
+  // カウンターの保存は、このインスタンスだけが担当する。保存の順番を1か所で管理するため。
+  const counterStore = new CounterStore();
+  protocol.onMessage("incrementCounter", () => counterStore.increment());
 
   // カウンターの値が変更されたら、変更元に関係なくバッジに表示する。
-  watchCounter(updateBadge);
-  void getCounter().then(updateBadge);
+  counterStore.watch(updateBadge);
+  void counterStore.get().then(updateBadge);
 }
 
 /**
@@ -30,6 +32,7 @@ function updateBadge(count: number): void
     ? browser.action
     : browser.browserAction
   );
+
   void action.setBadgeText({ text: toBadgeText(count) });
 }
 
