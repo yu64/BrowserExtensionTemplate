@@ -32,8 +32,6 @@ npm run dev
 - `npm run build` で `.output/chrome-mv3` にビルドする。
 - `proto use` で `.prototools` のバージョンの Node.js を準備できる。
 
-詳細は [docs/guide.md](docs/guide.md)、コーディングルールは [docs/coding-style.md](docs/coding-style.md) を参照。
-
 ## ライセンス
 
 [MIT](LICENSE)
