@@ -29,9 +29,9 @@ jobs:
     # 処理が止まったまま時間を消費し続けないように、上限を指定する。通常は数分で完了する。
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           # .prototools のバージョンと合わせる。
           node-version: 24
@@ -52,7 +52,7 @@ jobs:
         run: npm run e2e
 
       # 失敗したときは、原因を調査できるように Playwright のレポート（スクリーンショット・トレース）を保存する。
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
@@ -64,7 +64,7 @@ jobs:
           npm run zip
           npm run zip:firefox
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: extension-zips
           path: .output/*.zip
